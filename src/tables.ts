@@ -1,5 +1,5 @@
 import { parquetMetadataAsync, parquetReadObjects, parquetSchema } from 'hyparquet';
-import { compressors } from 'hyparquet-compressors';
+import { compressors } from './parquetCodecs';
 
 export type TablePreview = { columns: string[]; rows: unknown[][]; totalRows: number; shownRows: number };
 
