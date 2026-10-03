@@ -468,3 +468,29 @@ async fn sftp_integration() {
     assert!(state.endpoint(&alpha_connection.id).await.is_err());
     println!("SFTP verified: pre-auth fingerprint gate, password/key auth, browse, preview, byte-identical upload/relay/download, recursive folders, conflict preservation, cancellation cleanup, disconnect.");
 }
+
+#[tokio::test]
+async fn reads_bounded_byte_ranges_from_local_files() {
+    let scratch = Scratch::new();
+    let path = scratch.path("table.parquet");
+    let data: Vec<u8> = (0..=255u8).cycle().take(1000).collect();
+    fs::write(&path, &data).await.unwrap();
+    let endpoint = Endpoint::Local;
+    assert_eq!(endpoint.read_range(&path, 250, 10).await.unwrap(), data[250..260]);
+    assert_eq!(endpoint.read_range(&path, 996, 100).await.unwrap(), data[996..]);
+    assert!(endpoint.read_range(&path, 1001, 1).await.is_err());
+    assert!(endpoint.read_range(&path, 0, 64 * 1024 * 1024 + 1).await.is_err());
+    assert!(endpoint.read_range(&scratch.path(""), 0, 1).await.is_err());
+}
+
+#[test]
+fn lists_existing_drive_roots() {
+    let drives = crate::list_drives();
+    assert!(!drives.is_empty());
+    for drive in &drives {
+        assert!(std::path::Path::new(drive).is_dir(), "{drive}");
+    }
+    if cfg!(windows) {
+        assert!(drives.iter().all(|drive| drive.len() == 3 && drive.ends_with(":\\")));
+    }
+}

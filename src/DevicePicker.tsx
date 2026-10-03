@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
-import { Check, ChevronDown, Laptop, Plus, RefreshCw, Search, Server, Trash2, Unplug } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type Ref } from 'react';
+import { Check, CircleAlert, Laptop, Plus, RefreshCw, Search, Server, Trash2, Unplug } from 'lucide-react';
 import type { Connection, SshConfigHost } from './types';
 import { useDismiss } from './useDismiss';
 
@@ -9,16 +9,21 @@ type Item = {
   state: ReactNode; current: boolean; warning?: string | null; select: () => void;
   action?: { label: string; icon: ReactNode; run: () => void };
 };
-type Section = { key: string; title: string; items: Item[]; extra?: ReactNode };
+type Section = { key: string; title: string; items: Item[]; extra?: ReactNode; notes?: ReactNode };
+export type PickerTrigger = (args: { open: boolean; toggle: () => void; ref: Ref<HTMLButtonElement> }) => ReactNode;
 
 interface DevicePickerProps {
+  /** Names the panel ("选择{label}"). */
   label: string;
-  current: Connection | undefined;
+  trigger: PickerTrigger;
+  current?: Connection;
   otherConnectionId: string;
   connections: Connection[];
   configHosts: SshConfigHost[];
   configPath: string;
   configLoading: boolean;
+  configError: string | null;
+  configWarnings: string[];
   profiles: SavedProfile[];
   isHostLive: (host: SshConfigHost) => boolean;
   isProfileLive: (index: number) => boolean;
@@ -31,13 +36,25 @@ interface DevicePickerProps {
   onCreate: () => void;
 }
 
+const PANEL_WIDTH = 380;
 const endpoint = (username: string, host: string, port = 22) => `${username}@${host}${port === 22 ? '' : `:${port}`}`;
+
+/** Places the fixed panel under its trigger, inside the app surface (which contains fixed children). */
+function panelPosition(trigger: HTMLElement | null): CSSProperties {
+  const surface = trigger?.closest('.app') as HTMLElement | null;
+  if (!trigger || !surface) return {};
+  const anchor = trigger.getBoundingClientRect();
+  const frame = surface.getBoundingClientRect();
+  const left = anchor.left - frame.left - surface.clientLeft;
+  return { top: anchor.bottom - frame.top - surface.clientTop + 6, left: Math.max(8, Math.min(left, surface.clientWidth - PANEL_WIDTH - 8)) };
+}
 
 export default function DevicePicker(props: DevicePickerProps) {
   const { label, current, connections, configHosts, profiles } = props;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
+  const [position, setPosition] = useState<CSSProperties>({});
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -68,6 +85,14 @@ export default function DevicePicker(props: DevicePickerProps) {
         <code title={props.configPath}>{props.configPath}</code>
         <button className="icon-btn icon-btn-sm" aria-label="重新读取配置" title="重新读取配置" disabled={props.configLoading} onClick={props.onReloadConfig}><RefreshCw size={11} className={props.configLoading ? 'spin' : ''} /></button>
       </>,
+      notes: (props.configError || props.configWarnings.length > 0) && (
+        <div className="picker-alert">
+          <CircleAlert size={12} />
+          <div>
+            {props.configError ? <><strong>读取失败，可手动连接</strong><p>{props.configError}</p></> : props.configWarnings.map((warning, index) => <p key={index}>{warning}</p>)}
+          </div>
+        </div>
+      ),
       items: configHosts.map(host => ({
         key: `ssh:${host.alias}`, title: host.alias, kind: 'ssh', detail: endpoint(host.username, host.host, host.port),
         current: false, warning: host.warning, state: host.warning ? null : props.isHostLive(host) ? live : null,
@@ -95,11 +120,17 @@ export default function DevicePicker(props: DevicePickerProps) {
   useEffect(() => {
     bodyRef.current?.querySelector('.is-active')?.scrollIntoView?.({ block: 'nearest' });
   }, [active, open]);
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener('resize', dismiss);
+    return () => window.removeEventListener('resize', dismiss);
+  }, [open, dismiss]);
 
   const toggle = () => {
     if (open) { close(); return; }
     setQuery('');
     setActive(Math.max(0, sections[0].items.findIndex(item => item.current)));
+    setPosition(panelPosition(triggerRef.current));
     setOpen(true);
   };
   const onKeyDown = (event: KeyboardEvent) => {
@@ -115,16 +146,12 @@ export default function DevicePicker(props: DevicePickerProps) {
     }
   };
 
-  let position = -1;
+  let index = -1;
   return (
     <div className="picker" ref={rootRef}>
-      <button ref={triggerRef} className={`picker-trigger ${open ? 'is-open' : ''}`} aria-label={label} aria-haspopup="dialog" aria-expanded={open} onClick={toggle}>
-        {current?.kind === 'ssh' ? <Server size={14} /> : <Laptop size={14} />}
-        <span className="picker-current">{current?.name || '本机'}</span>
-        <ChevronDown size={12} />
-      </button>
+      {props.trigger({ open, toggle, ref: triggerRef })}
       {open && (
-        <div className="picker-panel" role="dialog" aria-label={`选择${label}`} onKeyDown={onKeyDown}>
+        <div className="picker-panel" role="dialog" aria-label={`选择${label}`} style={position} onKeyDown={onKeyDown}>
           <label className="picker-search">
             <Search size={13} />
             <input autoFocus placeholder="搜索名称、主机或用户" aria-label="搜索设备" value={query} spellCheck={false} onChange={event => { setQuery(event.target.value); setActive(0); }} />
@@ -133,12 +160,13 @@ export default function DevicePicker(props: DevicePickerProps) {
             {visible.map(section => (
               <div className="picker-section" role="group" aria-label={section.title} key={section.key}>
                 <div className="picker-section-head"><span>{section.title}</span>{section.extra}</div>
-                {section.items.length === 0 && <div className="picker-note">{props.configLoading ? '读取中…' : '配置中没有可用的主机'}</div>}
+                {section.notes}
+                {section.items.length === 0 && !props.configError && <div className="picker-note">{props.configLoading ? '读取中…' : '配置中没有可用的主机'}</div>}
                 {section.items.map(item => {
-                  position += 1;
-                  const index = position;
+                  index += 1;
+                  const position = index;
                   return (
-                    <div className={`picker-row ${index === active ? 'is-active' : ''}`} key={item.key} onMouseMove={() => setActive(index)}>
+                    <div className={`picker-row ${position === active ? 'is-active' : ''}`} key={item.key} onMouseMove={() => setActive(position)}>
                       <button className="picker-option" aria-current={item.current || undefined} title={item.warning || undefined} onClick={item.select}>
                         {item.kind === 'ssh' ? <Server size={14} className="picker-kind" /> : <Laptop size={14} className="picker-kind" />}
                         <span className="picker-text">

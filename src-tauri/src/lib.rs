@@ -18,6 +18,22 @@ fn get_local_info() -> Result<Connection, String> {
     connection::local_info().map_err(display_error)
 }
 
+/// Drive roots that exist on this machine (Windows), or the filesystem root elsewhere.
+#[tauri::command]
+fn list_drives() -> Vec<String> {
+    #[cfg(windows)]
+    {
+        (b'A'..=b'Z')
+            .map(|letter| format!("{}:\\", letter as char))
+            .filter(|root| std::path::Path::new(root).is_dir())
+            .collect()
+    }
+    #[cfg(not(windows))]
+    {
+        vec!["/".into()]
+    }
+}
+
 #[tauri::command]
 async fn get_ssh_config_hosts() -> Result<ssh_config::SshConfigHosts, String> {
     tokio::task::spawn_blocking(ssh_config::read_default)
@@ -75,6 +91,25 @@ async fn preview_file(
         .map_err(display_error)?;
     files::preview(&endpoint, &path)
         .await
+        .map_err(display_error)
+}
+
+#[tauri::command]
+async fn read_file_range(
+    state: State<'_, AppState>,
+    connection_id: String,
+    path: String,
+    offset: u64,
+    length: u64,
+) -> Result<tauri::ipc::Response, String> {
+    let endpoint = state
+        .endpoint(&connection_id)
+        .await
+        .map_err(display_error)?;
+    endpoint
+        .read_range(&path, offset, length)
+        .await
+        .map(tauri::ipc::Response::new)
         .map_err(display_error)
 }
 
@@ -146,12 +181,14 @@ pub fn run() {
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             get_local_info,
+            list_drives,
             get_ssh_config_hosts,
             probe_ssh,
             connect_ssh,
             disconnect,
             list_directory,
             preview_file,
+            read_file_range,
             start_transfer,
             cancel_transfer
         ])

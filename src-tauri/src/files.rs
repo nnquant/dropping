@@ -8,7 +8,7 @@ use russh_sftp::{
 };
 use tokio::{
     fs,
-    io::{AsyncRead, AsyncReadExt, AsyncWrite},
+    io::{AsyncRead, AsyncReadExt, AsyncSeekExt, AsyncWrite, SeekFrom},
 };
 
 use crate::{
@@ -252,6 +252,37 @@ impl Endpoint {
             Self::Local => Ok(Box::pin(fs::File::open(path).await?)),
             Self::Remote(remote) => Ok(Box::pin(remote.sftp.open(path).await?)),
         }
+    }
+
+    /// Reads `length` bytes starting at `offset`; used for formats such as Parquet
+    /// whose metadata lives at the end of the file.
+    pub async fn read_range(&self, path: &str, offset: u64, length: u64) -> Result<Vec<u8>> {
+        const RANGE_LIMIT: u64 = 64 * 1024 * 1024;
+        if length > RANGE_LIMIT {
+            bail!("单次读取超过 64 MiB 预览上限");
+        }
+        let meta = self.metadata(path).await?;
+        if meta.is_symlink || !meta.is_file {
+            bail!("仅支持普通文件，符号链接和特殊文件不会被读取：{path}");
+        }
+        if offset > meta.size {
+            bail!("读取位置超出文件末尾");
+        }
+        let length = length.min(meta.size - offset);
+        let mut bytes = Vec::with_capacity(length as usize);
+        match self {
+            Self::Local => {
+                let mut file = fs::File::open(path).await?;
+                file.seek(SeekFrom::Start(offset)).await?;
+                file.take(length).read_to_end(&mut bytes).await?;
+            }
+            Self::Remote(remote) => {
+                let mut file = remote.sftp.open(path).await?;
+                file.seek(SeekFrom::Start(offset)).await?;
+                file.take(length).read_to_end(&mut bytes).await?;
+            }
+        }
+        Ok(bytes)
     }
 
     pub async fn create_exclusive(&self, path: &str) -> Result<Writer> {

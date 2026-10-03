@@ -8,7 +8,7 @@ Source availability: version-specific upstream source URLs are listed for every 
 For MPL-2.0 components, the corresponding source archives provide the covered source under MPL-2.0.
 Regenerate with: python tools/generate-notices.py --fetch-missing
 
-Component records: 367
+Component records: 475
 Recovered omitted crate license files: 11
 Unresolved license texts: 0
 
@@ -2153,27 +2153,567 @@ License/copyright text 79: LICENSE-APACHE-2.0
 License/copyright text 185: LICENSE-MIT
 License/copyright text 226: LICENSE.spdx
 
-COMPONENT 364: npm lucide-react 0.468.0
+COMPONENT 364: npm @types/debug 4.1.13
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/debug/v/4.1.13
+License/copyright text 216: LICENSE
+
+COMPONENT 365: npm @types/estree 1.0.9
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/estree/v/1.0.9
+License/copyright text 216: LICENSE
+
+COMPONENT 366: npm @types/estree-jsx 1.0.5
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/estree-jsx/v/1.0.5
+License/copyright text 216: LICENSE
+
+COMPONENT 367: npm @types/hast 3.0.5
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/hast/v/3.0.5
+License/copyright text 216: LICENSE
+
+COMPONENT 368: npm @types/mdast 4.0.4
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/mdast/v/4.0.4
+License/copyright text 216: LICENSE
+
+COMPONENT 369: npm @types/ms 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/ms/v/2.1.0
+License/copyright text 216: LICENSE
+
+COMPONENT 370: npm @types/react 19.3.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/react/v/19.3.0
+License/copyright text 216: LICENSE
+
+COMPONENT 371: npm @types/unist 3.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/unist/v/3.0.3
+License/copyright text 216: LICENSE
+
+COMPONENT 372: npm @ungap/structured-clone 1.4.0
+Declared license: ISC
+Source: https://www.npmjs.com/package/@ungap/structured-clone/v/1.4.0
+License/copyright text 227: LICENSE
+
+COMPONENT 373: npm bail 2.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/bail/v/2.0.2
+License/copyright text 228: license
+
+COMPONENT 374: npm ccount 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/ccount/v/2.0.1
+License/copyright text 228: license
+
+COMPONENT 375: npm character-entities 2.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/character-entities/v/2.0.2
+License/copyright text 228: license
+
+COMPONENT 376: npm character-entities-html4 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/character-entities-html4/v/2.1.0
+License/copyright text 228: license
+
+COMPONENT 377: npm character-entities-legacy 3.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/character-entities-legacy/v/3.0.0
+License/copyright text 228: license
+
+COMPONENT 378: npm character-reference-invalid 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/character-reference-invalid/v/2.0.1
+License/copyright text 228: license
+
+COMPONENT 379: npm comma-separated-tokens 2.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/comma-separated-tokens/v/2.0.3
+License/copyright text 229: license
+
+COMPONENT 380: npm csstype 3.2.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/csstype/v/3.2.3
+License/copyright text 230: LICENSE
+
+COMPONENT 381: npm debug 4.4.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/debug/v/4.4.3
+License/copyright text 231: LICENSE
+
+COMPONENT 382: npm decode-named-character-reference 1.3.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/decode-named-character-reference/v/1.3.0
+License/copyright text 232: license
+
+COMPONENT 383: npm dequal 2.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/dequal/v/2.0.3
+License/copyright text 233: license
+
+COMPONENT 384: npm devlop 1.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/devlop/v/1.1.0
+License/copyright text 234: license
+
+COMPONENT 385: npm escape-string-regexp 5.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/escape-string-regexp/v/5.0.0
+License/copyright text 235: license
+
+COMPONENT 386: npm estree-util-is-identifier-name 3.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/estree-util-is-identifier-name/v/3.0.0
+License/copyright text 236: license
+
+COMPONENT 387: npm extend 3.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/extend/v/3.0.2
+License/copyright text 237: LICENSE
+
+COMPONENT 388: npm fzstd 0.1.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/fzstd/v/0.1.1
+License/copyright text 238: LICENSE
+
+COMPONENT 389: npm hast-util-to-jsx-runtime 2.3.6
+Declared license: MIT
+Source: https://www.npmjs.com/package/hast-util-to-jsx-runtime/v/2.3.6
+License/copyright text 232: license
+
+COMPONENT 390: npm hast-util-whitespace 3.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/hast-util-whitespace/v/3.0.0
+License/copyright text 229: license
+
+COMPONENT 391: npm highlight.js 11.12.0
+Declared license: BSD-3-Clause
+Source: https://www.npmjs.com/package/highlight.js/v/11.12.0
+License/copyright text 239: LICENSE
+
+COMPONENT 392: npm html-url-attributes 3.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/html-url-attributes/v/3.0.1
+License/copyright text 240: license
+
+COMPONENT 393: npm hyparquet 1.31.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/hyparquet/v/1.31.2
+License/copyright text 241: LICENSE
+
+COMPONENT 394: npm hyparquet-compressors 1.1.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/hyparquet-compressors/v/1.1.2
+License/copyright text 241: LICENSE
+
+COMPONENT 395: npm hysnappy 1.1.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/hysnappy/v/1.1.1
+License/copyright text 241: LICENSE
+
+COMPONENT 396: npm inline-style-parser 0.2.7
+Declared license: MIT
+Source: https://www.npmjs.com/package/inline-style-parser/v/0.2.7
+License/copyright text 242: LICENSE
+
+COMPONENT 397: npm is-alphabetical 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/is-alphabetical/v/2.0.1
+License/copyright text 229: license
+
+COMPONENT 398: npm is-alphanumerical 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/is-alphanumerical/v/2.0.1
+License/copyright text 229: license
+
+COMPONENT 399: npm is-decimal 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/is-decimal/v/2.0.1
+License/copyright text 229: license
+
+COMPONENT 400: npm is-hexadecimal 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/is-hexadecimal/v/2.0.1
+License/copyright text 229: license
+
+COMPONENT 401: npm is-plain-obj 4.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/is-plain-obj/v/4.1.0
+License/copyright text 235: license
+
+COMPONENT 402: npm longest-streak 3.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/longest-streak/v/3.1.0
+License/copyright text 243: license
+
+COMPONENT 403: npm lucide-react 0.468.0
 Declared license: ISC
 Source: https://www.npmjs.com/package/lucide-react/v/0.468.0
-License/copyright text 227: dist/esm/icons/copyright.js
-License/copyright text 228: dist/esm/icons/copyright.js.map
-License/copyright text 229: LICENSE
+License/copyright text 244: dist/esm/icons/copyright.js
+License/copyright text 245: dist/esm/icons/copyright.js.map
+License/copyright text 246: LICENSE
 
-COMPONENT 365: npm react 19.3.0
+COMPONENT 404: npm markdown-table 3.0.4
+Declared license: MIT
+Source: https://www.npmjs.com/package/markdown-table/v/3.0.4
+License/copyright text 232: license
+
+COMPONENT 405: npm mdast-util-find-and-replace 3.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-find-and-replace/v/3.0.2
+License/copyright text 232: license
+
+COMPONENT 406: npm mdast-util-from-markdown 2.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-from-markdown/v/2.0.3
+License/copyright text 232: license
+
+COMPONENT 407: npm mdast-util-gfm 3.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-gfm/v/3.1.0
+License/copyright text 232: license
+
+COMPONENT 408: npm mdast-util-gfm-autolink-literal 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-gfm-autolink-literal/v/2.0.1
+License/copyright text 236: license
+
+COMPONENT 409: npm mdast-util-gfm-footnote 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-gfm-footnote/v/2.1.0
+License/copyright text 232: license
+
+COMPONENT 410: npm mdast-util-gfm-strikethrough 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-gfm-strikethrough/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 411: npm mdast-util-gfm-table 2.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-gfm-table/v/2.0.0
+License/copyright text 236: license
+
+COMPONENT 412: npm mdast-util-gfm-task-list-item 2.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-gfm-task-list-item/v/2.0.0
+License/copyright text 236: license
+
+COMPONENT 413: npm mdast-util-mdx-expression 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-mdx-expression/v/2.0.1
+License/copyright text 236: license
+
+COMPONENT 414: npm mdast-util-mdx-jsx 3.2.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-mdx-jsx/v/3.2.0
+License/copyright text 236: license
+
+COMPONENT 415: npm mdast-util-mdxjs-esm 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-mdxjs-esm/v/2.0.1
+License/copyright text 236: license
+
+COMPONENT 416: npm mdast-util-phrasing 4.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-phrasing/v/4.1.0
+License/copyright text 247: license
+
+COMPONENT 417: npm mdast-util-to-hast 13.2.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-to-hast/v/13.2.1
+License/copyright text 229: license
+
+COMPONENT 418: npm mdast-util-to-markdown 2.1.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-to-markdown/v/2.1.3
+License/copyright text 232: license
+
+COMPONENT 419: npm mdast-util-to-string 4.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/mdast-util-to-string/v/4.0.0
+License/copyright text 228: license
+
+COMPONENT 420: npm micromark 4.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark/v/4.0.3
+License/copyright text 232: license
+
+COMPONENT 421: npm micromark-core-commonmark 2.0.4
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-core-commonmark/v/2.0.4
+License/copyright text 232: license
+
+COMPONENT 422: npm micromark-extension-gfm 3.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-extension-gfm/v/3.0.0
+License/copyright text 236: license
+
+COMPONENT 423: npm micromark-extension-gfm-autolink-literal 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-extension-gfm-autolink-literal/v/2.1.0
+License/copyright text 236: license
+
+COMPONENT 424: npm micromark-extension-gfm-footnote 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-extension-gfm-footnote/v/2.1.0
+License/copyright text 248: license
+
+COMPONENT 425: npm micromark-extension-gfm-strikethrough 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-extension-gfm-strikethrough/v/2.1.0
+License/copyright text 236: license
+
+COMPONENT 426: npm micromark-extension-gfm-table 2.1.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-extension-gfm-table/v/2.1.2
+License/copyright text 232: license
+
+COMPONENT 427: npm micromark-extension-gfm-tagfilter 2.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-extension-gfm-tagfilter/v/2.0.0
+License/copyright text 236: license
+
+COMPONENT 428: npm micromark-extension-gfm-task-list-item 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-extension-gfm-task-list-item/v/2.1.0
+License/copyright text 236: license
+
+COMPONENT 429: npm micromark-factory-destination 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-factory-destination/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 430: npm micromark-factory-label 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-factory-label/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 431: npm micromark-factory-space 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-factory-space/v/2.1.0
+License/copyright text 232: license
+
+COMPONENT 432: npm micromark-factory-title 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-factory-title/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 433: npm micromark-factory-whitespace 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-factory-whitespace/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 434: npm micromark-util-character 2.1.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-character/v/2.1.1
+License/copyright text 232: license
+
+COMPONENT 435: npm micromark-util-chunked 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-chunked/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 436: npm micromark-util-classify-character 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-classify-character/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 437: npm micromark-util-combine-extensions 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-combine-extensions/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 438: npm micromark-util-decode-numeric-character-reference 2.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-decode-numeric-character-reference/v/2.0.2
+License/copyright text 232: license
+
+COMPONENT 439: npm micromark-util-decode-string 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-decode-string/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 440: npm micromark-util-edit-map 1.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-edit-map/v/1.0.0
+License/copyright text 232: license
+
+COMPONENT 441: npm micromark-util-encode 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-encode/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 442: npm micromark-util-html-tag-name 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-html-tag-name/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 443: npm micromark-util-normalize-identifier 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-normalize-identifier/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 444: npm micromark-util-resolve-all 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-resolve-all/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 445: npm micromark-util-sanitize-uri 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-sanitize-uri/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 446: npm micromark-util-subtokenize 2.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-subtokenize/v/2.1.0
+License/copyright text 232: license
+
+COMPONENT 447: npm micromark-util-symbol 2.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-symbol/v/2.0.1
+License/copyright text 232: license
+
+COMPONENT 448: npm micromark-util-types 2.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/micromark-util-types/v/2.0.3
+License/copyright text 232: license
+
+COMPONENT 449: npm ms 2.1.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/ms/v/2.1.3
+License/copyright text 249: license.md
+
+COMPONENT 450: npm parse-entities 4.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/parse-entities/v/4.0.2
+License/copyright text 250: license
+
+COMPONENT 451: npm @types/unist 2.0.11
+Declared license: MIT
+Source: https://www.npmjs.com/package/@types/unist/v/2.0.11
+License/copyright text 216: LICENSE
+
+COMPONENT 452: npm property-information 7.2.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/property-information/v/7.2.0
+License/copyright text 250: license
+
+COMPONENT 453: npm react 19.3.0
 Declared license: MIT
 Source: https://www.npmjs.com/package/react/v/19.3.0
-License/copyright text 230: LICENSE
+License/copyright text 251: LICENSE
 
-COMPONENT 366: npm react-dom 19.3.0
+COMPONENT 454: npm react-dom 19.3.0
 Declared license: MIT
 Source: https://www.npmjs.com/package/react-dom/v/19.3.0
-License/copyright text 230: LICENSE
+License/copyright text 251: LICENSE
 
-COMPONENT 367: npm scheduler 0.28.0
+COMPONENT 455: npm react-markdown 10.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/react-markdown/v/10.1.0
+License/copyright text 252: license
+
+COMPONENT 456: npm remark-gfm 4.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/remark-gfm/v/4.0.1
+License/copyright text 232: license
+
+COMPONENT 457: npm remark-parse 11.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/remark-parse/v/11.0.0
+License/copyright text 253: license
+
+COMPONENT 458: npm remark-rehype 11.1.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/remark-rehype/v/11.1.2
+License/copyright text 232: license
+
+COMPONENT 459: npm remark-stringify 11.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/remark-stringify/v/11.0.0
+License/copyright text 253: license
+
+COMPONENT 460: npm scheduler 0.28.0
 Declared license: MIT
 Source: https://www.npmjs.com/package/scheduler/v/0.28.0
-License/copyright text 230: LICENSE
+License/copyright text 251: LICENSE
+
+COMPONENT 461: npm space-separated-tokens 2.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/space-separated-tokens/v/2.0.2
+License/copyright text 229: license
+
+COMPONENT 462: npm stringify-entities 4.0.4
+Declared license: MIT
+Source: https://www.npmjs.com/package/stringify-entities/v/4.0.4
+License/copyright text 243: license
+
+COMPONENT 463: npm style-to-js 1.1.21
+Declared license: MIT
+Source: https://www.npmjs.com/package/style-to-js/v/1.1.21
+License/copyright text 254: LICENSE
+
+COMPONENT 464: npm style-to-object 1.0.14
+Declared license: MIT
+Source: https://www.npmjs.com/package/style-to-object/v/1.0.14
+License/copyright text 255: LICENSE
+
+COMPONENT 465: npm trim-lines 3.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/trim-lines/v/3.0.1
+License/copyright text 243: license
+
+COMPONENT 466: npm trough 2.2.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/trough/v/2.2.0
+License/copyright text 256: license
+
+COMPONENT 467: npm unified 11.0.5
+Declared license: MIT
+Source: https://www.npmjs.com/package/unified/v/11.0.5
+License/copyright text 257: license
+
+COMPONENT 468: npm unist-util-is 6.0.1
+Declared license: MIT
+Source: https://www.npmjs.com/package/unist-util-is/v/6.0.1
+License/copyright text 258: license
+
+COMPONENT 469: npm unist-util-position 5.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/unist-util-position/v/5.0.0
+License/copyright text 228: license
+
+COMPONENT 470: npm unist-util-stringify-position 4.0.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/unist-util-stringify-position/v/4.0.0
+License/copyright text 229: license
+
+COMPONENT 471: npm unist-util-visit 5.1.0
+Declared license: MIT
+Source: https://www.npmjs.com/package/unist-util-visit/v/5.1.0
+License/copyright text 228: license
+
+COMPONENT 472: npm unist-util-visit-parents 6.0.2
+Declared license: MIT
+Source: https://www.npmjs.com/package/unist-util-visit-parents/v/6.0.2
+License/copyright text 229: license
+
+COMPONENT 473: npm vfile 6.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/vfile/v/6.0.3
+License/copyright text 257: license
+
+COMPONENT 474: npm vfile-message 4.0.3
+Declared license: MIT
+Source: https://www.npmjs.com/package/vfile-message/v/4.0.3
+License/copyright text 232: license
+
+COMPONENT 475: npm zwitch 2.0.4
+Declared license: MIT
+Source: https://www.npmjs.com/package/zwitch/v/2.0.4
+License/copyright text 229: license
 
 FULL LICENSE AND COPYRIGHT TEXTS
 
@@ -14512,6 +15052,364 @@ PackageDownloadLocation: git+ssh://github.com/tauri-apps/tauri.git
 Creator: Person: Daniel Thompson-Yvetot
 
 ===== TEXT 227 =====
+ISC License
+
+Copyright (c) 2021, Andrea Giammarchi, @WebReflection
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+===== TEXT 228 =====
+(The MIT License)
+
+Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 229 =====
+(The MIT License)
+
+Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 230 =====
+Copyright (c) 2017-2018 Fredrik Nicol
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+===== TEXT 231 =====
+(The MIT License)
+
+Copyright (c) 2014-2017 TJ Holowaychuk <tj@vision-media.ca>
+Copyright (c) 2018-2021 Josh Junon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the 'Software'), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial
+portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 232 =====
+(The MIT License)
+
+Copyright (c) Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 233 =====
+The MIT License (MIT)
+
+Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+===== TEXT 234 =====
+(The MIT License)
+
+Copyright (c) 2023 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 235 =====
+MIT License
+
+Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 236 =====
+(The MIT License)
+
+Copyright (c) 2020 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 237 =====
+The MIT License (MIT)
+
+Copyright (c) 2014 Stefan Thomas
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 238 =====
+MIT License
+
+Copyright (c) 2020 Arjun Barrett
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+===== TEXT 239 =====
+BSD 3-Clause License
+
+Copyright (c) 2006, Ivan Sagalaev.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+===== TEXT 240 =====
+(The MIT License)
+
+Copyright (c) Titus Wormer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+===== TEXT 241 =====
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 242 =====
+(The MIT License)
+
+Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 243 =====
+(The MIT License)
+
+Copyright (c) 2015 Titus Wormer <mailto:tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 244 =====
 /**
  * @license lucide-react v0.468.0 - ISC
  *
@@ -14529,10 +15427,10 @@ const Copyright = createLucideIcon("Copyright", [
 export { Copyright as default };
 //# sourceMappingURL=copyright.js.map
 
-===== TEXT 228 =====
+===== TEXT 245 =====
 {"version":3,"file":"copyright.js","sources":["../../../src/icons/copyright.ts"],"sourcesContent":["import createLucideIcon from '../createLucideIcon';\n\n/**\n * @component @name Copyright\n * @description Lucide SVG icon component, renders SVG Element with children.\n *\n * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgLz4KICA8cGF0aCBkPSJNMTQuODMgMTQuODNhNCA0IDAgMSAxIDAtNS42NiIgLz4KPC9zdmc+Cg==) - https://lucide.dev/icons/copyright\n * @see https://lucide.dev/guide/packages/lucide-react - Documentation\n *\n * @param {Object} props - Lucide icons props and any valid SVG attribute\n * @returns {JSX.Element} JSX Element\n *\n */\nconst Copyright = createLucideIcon('Copyright', [\n  ['circle', { cx: '12', cy: '12', r: '10', key: '1mglay' }],\n  ['path', { d: 'M14.83 14.83a4 4 0 1 1 0-5.66', key: '1i56pz' }],\n]);\n\nexport default Copyright;\n"],"names":[],"mappings":";;;;;;;;;AAaM,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAY,iBAAiB,WAAa,CAAA,CAAA,CAAA;AAAA,CAC9C,CAAA,CAAC,QAAU,CAAA,CAAA,CAAA,CAAE,EAAI,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,EAAM,CAAI,CAAA,CAAA,CAAA,IAAA,CAAM,CAAA,CAAG,EAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAM,GAAK,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,EAAU,CAAA,CAAA;AAAA,CAAA,CACzD,CAAC,CAAA,CAAA,CAAA,CAAA,CAAA,CAAQ,CAAA,CAAA,CAAA,CAAE,GAAG,CAAiC,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAK,UAAU,CAAA;AAChE,CAAC,CAAA,CAAA;;"}
 
-===== TEXT 229 =====
+===== TEXT 246 =====
 ISC License
 
 Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2022.
@@ -14549,7 +15447,103 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-===== TEXT 230 =====
+===== TEXT 247 =====
+(The MIT License)
+
+Copyright (c) 2017 Titus Wormer <tituswormer@gmail.com>
+Copyright (c) 2017 Victor Felder <victor@draft.li>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 248 =====
+(The MIT License)
+
+Copyright (c) 2021 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 249 =====
+The MIT License (MIT)
+
+Copyright (c) 2020 Vercel, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+===== TEXT 250 =====
+(The MIT License)
+
+Copyright (c) Titus Wormer <mailto:tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 251 =====
 MIT License
 
 Copyright (c) Meta Platforms, Inc. and affiliates.
@@ -14571,3 +15565,167 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+===== TEXT 252 =====
+The MIT License (MIT)
+
+Copyright (c) Espen Hovlandsdal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+===== TEXT 253 =====
+(The MIT License)
+
+Copyright (c) 2014 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+===== TEXT 254 =====
+The MIT License (MIT)
+
+Copyright (c) 2020 Menglin "Mark" Xu <mark@remarkablemark.org>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 255 =====
+The MIT License (MIT)
+
+Copyright (c) 2017 Menglin "Mark" Xu <mark@remarkablemark.org>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+===== TEXT 256 =====
+(The MIT License)
+
+Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+===== TEXT 257 =====
+(The MIT License)
+
+Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+===== TEXT 258 =====
+(The MIT license)
+
+Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
