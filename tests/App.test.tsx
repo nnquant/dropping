@@ -380,6 +380,65 @@ describe('parent row and drives', () => {
   });
 });
 
+describe('status bar', () => {
+  it('shows ready in green, then a failed transfer in red until dismissed', async () => {
+    const user = await setup();
+    const status = within(screen.getByRole('contentinfo'));
+    expect(status.getByText('就绪')).toBeTruthy();
+    expect(document.querySelector('.statusbar .dot.is-ok')).toBeTruthy();
+    await changeRightPath();
+    mocked.startTransfer.mockRejectedValue(new Error('目标目录已存在同名文件'));
+    await user.dblClick(within(screen.getByRole('region', { name: '左侧工作区' })).getByText('report.txt'));
+    const problem = await status.findByRole('button', { name: /report\.txt 传输失败：目标目录已存在同名文件/ });
+    expect(document.querySelector('.statusbar .dot.is-error')).toBeTruthy();
+    expect(status.queryByText('就绪')).toBeNull();
+    await user.click(problem);
+    expect(status.getByText('就绪')).toBeTruthy();
+  });
+
+  it('reports a dropped remote connection but not ordinary path errors', async () => {
+    localStorage.setItem('dropping.known-hosts.v1', JSON.stringify({ '10.20.30.40:2222': { fingerprint: 'SHA256:imported-key', keyType: 'ssh-ed25519' } }));
+    mocked.getSshConfigHosts.mockResolvedValue(importedConfig);
+    mocked.connectSsh.mockResolvedValue({ id: 'ssh-imported', name: 'quant-server', kind: 'ssh', host: '10.20.30.40', username: 'research', home: '/home/research' });
+    mocked.listDirectory.mockImplementation(async (id: string, path: string) => {
+      if (id !== 'ssh-imported') return listing(path);
+      if (path === '/home/research') return { path, parent: '/home', entries: [{ name: 'secret', path: '/home/research/secret', isDir: true, isSymlink: false, size: 0, modified: null }] };
+      if (path === '/home/research/secret') throw new Error('Permission denied');
+      throw new Error('连接已断开，请重新连接');
+    });
+    const user = await setup();
+    const status = within(screen.getByRole('contentinfo'));
+    await pickDevice(user, '右侧设备', 'SSH 配置', /^quant-server/);
+    const right = within(screen.getByRole('region', { name: '右侧工作区' }));
+    await user.dblClick(await right.findByText('secret'));
+    expect(await right.findByText('Permission denied')).toBeTruthy();
+    expect(status.getByText('就绪')).toBeTruthy();
+    await user.click(right.getByRole('button', { name: 'home' }));
+    expect(await status.findByRole('button', { name: /quant-server 连接异常：连接已断开/ })).toBeTruthy();
+  });
+});
+
+describe('hidden files', () => {
+  it('toggles dotfiles per pane from its toolbar', async () => {
+    mocked.listDirectory.mockImplementation(async (_id: string, path: string) => ({ path, parent: null, entries: [
+      { name: 'report.txt', path: `${path}/report.txt`, isDir: false, isSymlink: false, size: 12, modified: null },
+      { name: '.env', path: `${path}/.env`, isDir: false, isSymlink: false, size: 4, modified: null },
+    ] }));
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    const right = within(screen.getByRole('region', { name: '右侧工作区' }));
+    expect(left.queryByText('.env')).toBeNull();
+    const toggle = left.getByRole('button', { name: '显示隐藏文件' });
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    await user.click(toggle);
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(left.getByText('.env')).toBeTruthy();
+    expect(right.queryByText('.env')).toBeNull();
+    await user.click(toggle);
+    expect(left.queryByText('.env')).toBeNull();
+  });
+});
+
 describe('window chrome', () => {
   it('drives the frameless window controls and closes the queue panel with Escape', async () => {
     appWindow.isMaximized.mockResolvedValue(true);

@@ -1,6 +1,6 @@
 {
   "name": "dropping",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "A focused two-pane SFTP file transfer client built with Rust and Tauri",
   "license": "MIT",

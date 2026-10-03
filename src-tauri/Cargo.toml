@@ -1,6 +1,6 @@
 [package]
 name = "dropping"
-version = "0.1.1"
+version = "0.2.0"
 description = "A focused two-pane SFTP file transfer client"
 authors = ["nnquant and Dropping contributors"]
 license = "MIT"

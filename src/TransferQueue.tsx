@@ -43,8 +43,8 @@ export default function TransferQueue({ items, onCancel, onClearFinished }: Tran
 
   return (
     <div className="queue" ref={rootRef} onKeyDown={onKeyDown}>
-      <button ref={triggerRef} className={`tool ${open ? 'is-on' : ''}`} onClick={() => setOpen(value => !value)} aria-expanded={open} aria-haspopup="dialog">
-        <ArrowLeftRight size={14} />传输队列{pending > 0 && <span className="badge">{pending}</span>}
+      <button ref={triggerRef} className={`icon-btn tool-icon ${open ? 'is-on' : ''}`} onClick={() => setOpen(value => !value)} aria-label="传输队列" title="传输队列" aria-expanded={open} aria-haspopup="dialog">
+        <ArrowLeftRight size={15} />{pending > 0 && <span className="badge">{pending}</span>}
         {running && <span className="tool-progress"><span className={running.totalBytes ? '' : 'indeterminate'} style={{ width: `${percentOf(running)}%` }} /></span>}
       </button>
       {open && (

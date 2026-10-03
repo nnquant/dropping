@@ -1,6 +1,6 @@
 # 参与开发
 
-Dropping 0.1.1 使用 Rust、Tauri 2、React 和 TypeScript。当前已验证的开发与打包路径是 Windows；欢迎提交 macOS、Linux 适配，但请附上对应系统的实际构建和运行结果。
+Dropping 0.2.0 使用 Rust、Tauri 2、React 和 TypeScript。当前已验证的开发与打包路径是 Windows；欢迎提交 macOS、Linux 适配，但请附上对应系统的实际构建和运行结果。
 
 ## 准备环境
 

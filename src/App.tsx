@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import {
-  ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, CircleAlert, CodeXml, CornerLeftUp, Eye,
+  ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, CircleAlert, CodeXml, CornerLeftUp, Eye, EyeOff,
   Laptop, LoaderCircle, Plus, RefreshCw, Search, Server, X,
 } from 'lucide-react';
 import { api, appWindow, isDesktop, onTransferProgress } from './bridge';
@@ -11,6 +11,7 @@ import PreviewContent, { DataTable, previewFormat } from './PreviewContent';
 import { parseDelimited, readParquetPreview, type TablePreview } from './tables';
 import TransferQueue, { type QueueItem } from './TransferQueue';
 import type { Connection, DirectoryListing, FileEntry, HostKey, Preview, SshConfig, SshConfigHost, SshConfigHosts } from './types';
+import { version } from '../package.json';
 import './App.css';
 
 type Side = 0 | 1;
@@ -18,7 +19,7 @@ type SortKey = 'name' | 'size' | 'modified';
 type PaneState = {
   connectionId: string; path: string; draftPath: string; listing: DirectoryListing | null;
   loading: boolean; error: string | null; selected: string | null; search: string;
-  sort: SortKey; ascending: boolean; history: string[];
+  sort: SortKey; ascending: boolean; history: string[]; showHidden: boolean;
 };
 /** Each pane holds browser-style tabs; every tab keeps its own device, folder and view state. */
 type Tab = PaneState & { id: string };
@@ -29,7 +30,7 @@ type Profile = Pick<SshConfig, 'name' | 'host' | 'port' | 'username' | 'authMeth
 type ConnectForm = Profile & { password: string; passphrase: string };
 type PreviewState = { file: FileEntry; connectionName: string; loading: boolean; data: Preview | null; table: TablePreview | null; error: string | null };
 const isWindowChrome = (target: EventTarget) => !(target instanceof Element && target.closest('button, input, select, a, [role="dialog"]'));
-const emptyPane = (): PaneState => ({ connectionId: '', path: '', draftPath: '', listing: null, loading: true, error: null, selected: null, search: '', sort: 'name', ascending: true, history: [] });
+const emptyPane = (): PaneState => ({ connectionId: '', path: '', draftPath: '', listing: null, loading: true, error: null, selected: null, search: '', sort: 'name', ascending: true, history: [], showHidden: false });
 const newTab = (): Tab => ({ ...emptyPane(), id: crypto.randomUUID() });
 const newSide = (): SideTabs => { const tab = newTab(); return { tabs: [tab], active: tab.id }; };
 const activeOf = (side: SideTabs) => side.tabs.find(tab => tab.id === side.active) ?? side.tabs[0];
@@ -42,14 +43,16 @@ const KNOWN_HOSTS_KEY = 'dropping.known-hosts.v1';
 type KnownHost = { fingerprint: string; keyType: string };
 const hostId = (host: string, port: number) => `${host.trim().toLowerCase()}:${port}`;
 const isHandshakeFailure = (error: unknown) => messageOf(error).includes('SSH 握手失败');
+/** Errors from a remote operation that mean the session itself is gone, not just one path failing. */
+const DISCONNECTED = /连接已断开|断开|disconnect|channel closed|connection closed|session closed|broken pipe|reset by peer|timed out|超时|eof/i;
 const profileKey = (profile: Pick<Profile, 'host' | 'port' | 'username'>) => `${profile.username}@${profile.host}:${profile.port}`;
 const importedHostKey = (host: SshConfigHost) => JSON.stringify([host.alias, host.host, host.port, host.username, host.authMethod, host.privateKeyPath, host.warning]);
 
 /** Selection key of the `..` row; cannot collide with a real path. */
 const PARENT_ROW = '\u0000parent';
-function visibleEntries(pane: PaneState, showHidden: boolean) {
+function visibleEntries(pane: PaneState) {
   return (pane.listing?.entries || [])
-    .filter(entry => (showHidden || !entry.name.startsWith('.')) && entry.name.toLocaleLowerCase().includes(pane.search.toLocaleLowerCase()))
+    .filter(entry => (pane.showHidden || !entry.name.startsWith('.')) && entry.name.toLocaleLowerCase().includes(pane.search.toLocaleLowerCase()))
     .sort((a, b) => {
       if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
       const comparison = pane.sort === 'name' ? a.name.localeCompare(b.name, 'zh-CN', { numeric: true }) : (a[pane.sort] || 0) - (b[pane.sort] || 0);
@@ -83,12 +86,13 @@ export default function App() {
   const localRef = useRef<Connection | null>(null);
   const requests = useRef(new Map<string, number>());
   const [activeSide, setActiveSide] = useState<Side>(0);
-  const [showHidden, setShowHidden] = useState(false);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const pending = useRef<QueueItem[]>([]);
   const running = useRef<string | null>(null);
   const cancelled = useRef(new Set<string>());
   const [notification, setNotification] = useState<{ text: string; error: boolean } | null>(null);
+  /** Sticky status-bar problem (failed transfer, dropped connection) until the user dismisses it. */
+  const [statusError, setStatusError] = useState<{ text: string; transfer: boolean } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [connectOpen, setConnectOpen] = useState(false);
   const [connectTarget, setConnectTarget] = useState<Target>({ side: 1, tab: null });
@@ -124,6 +128,11 @@ export default function App() {
     clearTimeout(noticeTimer.current);
     noticeTimer.current = setTimeout(() => setNotification(null), error ? 9000 : 4500);
   }, []);
+  const reportRemoteFailure = useCallback((connectionId: string, error: unknown) => {
+    const connection = connectionsRef.current.find(item => item.id === connectionId);
+    const message = messageOf(error);
+    if (connection?.kind === 'ssh' && DISCONNECTED.test(message)) setStatusError({ text: `${connection.name} 连接异常：${message}`, transfer: false });
+  }, []);
   const loadDirectory = useCallback(async (side: Side, connectionId: string, path: string, addHistory = true, tabId = paneAt(side).id) => {
     const previous = sidesRef.current[side].tabs.find(tab => tab.id === tabId);
     if (!previous) return;
@@ -141,8 +150,9 @@ export default function App() {
     } catch (error) {
       if (requests.current.get(tabId) !== token) return;
       updateTab(side, tabId, current => ({ ...current, loading: false, error: messageOf(error), draftPath: path }));
+      reportRemoteFailure(connectionId, error);
     }
-  }, [paneAt, updateTab]);
+  }, [paneAt, reportRemoteFailure, updateTab]);
   const eachTab = useCallback((visit: (side: Side, tab: Tab) => void) => {
     ([0, 1] as Side[]).forEach(side => sidesRef.current[side].tabs.forEach(tab => visit(side, tab)));
   }, []);
@@ -241,6 +251,7 @@ export default function App() {
         const visibleError = wasCancelled && simpleCancellation ? undefined : errorMessage;
         setQueue(current => current.map(entry => entry.id === item.id ? { ...entry, status: wasCancelled ? 'cancelled' : 'failed', error: visibleError } : entry));
         if (visibleError) notify(`${item.name} ${wasCancelled ? '取消后需检查' : '传输失败'}：${visibleError}`, true);
+        if (visibleError && !wasCancelled) setStatusError({ text: `${item.name} 传输失败：${visibleError}`, transfer: true });
         refreshDestination(item);
       } finally {
         cancelled.current.delete(item.id);
@@ -288,8 +299,9 @@ export default function App() {
       if (request === previewRequest.current) setPreview(current => current ? { ...current, loading: false, data } : null);
     } catch (error) {
       if (request === previewRequest.current) setPreview(current => current ? { ...current, loading: false, error: messageOf(error) } : null);
+      reportRemoteFailure(pane.connectionId, error);
     }
-  }, [paneAt]);
+  }, [paneAt, reportRemoteFailure]);
   const closePreview = useCallback(() => { ++previewRequest.current; setPreview(null); }, []);
 
   useEffect(() => {
@@ -318,7 +330,7 @@ export default function App() {
       }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
-        const rows = [...(pane.listing?.parent && !pane.error ? [PARENT_ROW] : []), ...visibleEntries(pane, showHidden).map(file => file.path)];
+        const rows = [...(pane.listing?.parent && !pane.error ? [PARENT_ROW] : []), ...visibleEntries(pane).map(file => file.path)];
         const current = rows.indexOf(pane.selected ?? '');
         const next = event.key === 'ArrowDown' ? Math.min(current + 1, rows.length - 1) : Math.max(current - 1, 0);
         if (rows[next]) updatePane(activeSide, state => ({ ...state, selected: rows[next] }));
@@ -330,7 +342,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [activeSide, closePreview, connectOpen, connectionBusy, enqueue, loadDirectory, openPreview, paneAt, preview, showHidden, updatePane]);
+  }, [activeSide, closePreview, connectOpen, connectionBusy, enqueue, loadDirectory, openPreview, paneAt, preview, updatePane]);
 
   const openIn = (target: Target, connection: Connection) => {
     setActiveSide(target.side);
@@ -544,14 +556,14 @@ export default function App() {
       <header className="titlebar" onMouseDown={titlebarMouseDown} onMouseMove={titlebarMouseMove} onMouseUp={() => { dragOrigin.current = null; }} onDoubleClick={titlebarDoubleClick}>
         <div className="wordmark" aria-label="Dropping 文件传输"><svg className="wordmark-icon" viewBox="0 0 64 64" aria-hidden="true"><path d="M15.5 25H45.5M39 18.5l6.5 6.5-6.5 6.5M48.5 39H18.5M25 32.5l-6.5 6.5 6.5 6.5" fill="none" stroke="currentColor" strokeWidth="4" /></svg>Dropping</div>
         <div className="titlebar-actions">
-          <button className={`tool ${showHidden ? 'is-on' : ''}`} onClick={() => setShowHidden(value => !value)} aria-pressed={showHidden}>
-            <span className="tool-check" aria-hidden="true">{showHidden && <Check size={10} strokeWidth={3} />}</span>隐藏文件
-          </button>
-          <button className="tool" onClick={refreshAll} title="刷新目录与 SSH 配置" disabled={!connections.length}><RefreshCw size={14} />刷新</button>
+          <button className="icon-btn tool-icon" onClick={refreshAll} aria-label="刷新" title="刷新目录与 SSH 配置" disabled={!connections.length}><RefreshCw size={15} /></button>
           <TransferQueue
             items={queue}
             onCancel={item => void cancel(item)}
-            onClearFinished={() => setQueue(current => current.filter(item => ['queued', 'running'].includes(item.status)))}
+            onClearFinished={() => {
+              setQueue(current => current.filter(item => ['queued', 'running'].includes(item.status)));
+              setStatusError(current => current?.transfer ? null : current);
+            }}
           />
           <button className="btn btn-primary" onClick={() => openConnect({ side: activeSide, tab: null })}><Plus size={14} />新建连接</button>
         </div>
@@ -579,7 +591,7 @@ export default function App() {
           const pane = panes[side];
           const other = panes[side === 0 ? 1 : 0];
           const connection = connections.find(item => item.id === pane.connectionId);
-          const entries = visibleEntries(pane, showHidden);
+          const entries = visibleEntries(pane);
           const selected = pane.listing?.entries.find(item => item.path === pane.selected);
           const sideName = side === 0 ? '左侧' : '右侧';
           return (
@@ -629,6 +641,10 @@ export default function App() {
                   onNavigate={path => { if (pane.connectionId) void loadDirectory(side, pane.connectionId, path); }}
                 />
                 <button className="icon-btn" title="刷新目录" aria-label="刷新目录" disabled={!pane.connectionId || pane.loading} onClick={() => void loadDirectory(side, pane.connectionId, pane.path, false)}><RefreshCw size={13} className={pane.loading ? 'spin' : ''} /></button>
+                <button className={`icon-btn toggle-icon ${pane.showHidden ? 'is-on' : ''}`} aria-label="显示隐藏文件" aria-pressed={pane.showHidden} title={pane.showHidden ? '隐藏点文件' : '显示隐藏文件'}
+                  onClick={() => updatePane(side, current => ({ ...current, showHidden: !current.showHidden, selected: null }))}>
+                  {pane.showHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                </button>
                 <label className="filter-field">
                   <Search size={12} />
                   <input placeholder="筛选" aria-label={`筛选${sideName}文件`} value={pane.search} onChange={event => updatePane(side, current => ({ ...current, search: event.target.value, selected: null }))} />
@@ -701,10 +717,12 @@ export default function App() {
         })}
       </main>
 
-      <footer className="statusbar">
-        <span className="status-item"><span className={`dot ${isDesktop ? '' : 'off'}`} />{isDesktop ? '就绪' : '浏览器预览'}</span>
+      <footer className="statusbar" aria-live="polite">
+        {statusError
+          ? <button className="status-item status-error" title={`${statusError.text}（点击清除）`} onClick={() => setStatusError(null)}><span className="dot is-error" /><span className="truncate">{statusError.text}</span></button>
+          : <span className="status-item"><span className={`dot ${isDesktop ? 'is-ok' : 'off'}`} />{isDesktop ? '就绪' : '浏览器预览'}</span>}
         <span className="status-item">{remoteCount} 个远程连接</span>
-        <span className="status-item status-version muted">v0.1.1</span>
+        <span className="status-item status-version muted">v{version}</span>
       </footer>
 
       {notification && (
