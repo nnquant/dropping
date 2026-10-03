@@ -29,3 +29,16 @@ export async function onTransferProgress(callback: (event: TransferProgress) => 
   if (!isDesktop) return () => {};
   return listen<TransferProgress>('transfer-progress', event => callback(event.payload));
 }
+
+async function currentWindow() {
+  const { getCurrentWindow } = await import('@tauri-apps/api/window');
+  return getCurrentWindow();
+}
+
+export const appWindow = {
+  minimize: async () => { if (isDesktop) await (await currentWindow()).minimize(); },
+  toggleMaximize: async () => { if (isDesktop) await (await currentWindow()).toggleMaximize(); },
+  close: async () => { if (isDesktop) await (await currentWindow()).close(); },
+  isMaximized: async () => isDesktop ? (await currentWindow()).isMaximized() : false,
+  onResized: async (callback: () => void): Promise<() => void> => isDesktop ? (await currentWindow()).onResized(callback) : () => {},
+};

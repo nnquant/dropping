@@ -17,7 +17,8 @@
       "minWidth": 940,
       "minHeight": 640,
       "center": true,
-      "backgroundColor": "#f5f7f8"
+      "decorations": false,
+      "backgroundColor": "#ffffff"
     }],
     "security": {
       "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; object-src 'none'; frame-src 'none'; base-uri 'self'"

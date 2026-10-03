@@ -9,7 +9,11 @@ const mocked = vi.hoisted(() => ({
   cancelTransfer: vi.fn(), disconnect: vi.fn(), probeSsh: vi.fn(), connectSsh: vi.fn(),
   onTransferProgress: vi.fn(), getSshConfigHosts: vi.fn(),
 }));
-vi.mock('../src/bridge', () => ({ api: mocked, isDesktop: true, onTransferProgress: mocked.onTransferProgress }));
+const appWindow = vi.hoisted(() => ({
+  minimize: vi.fn(async () => {}), toggleMaximize: vi.fn(async () => {}), close: vi.fn(async () => {}),
+  isMaximized: vi.fn(async () => false), onResized: vi.fn(async () => () => {}),
+}));
+vi.mock('../src/bridge', () => ({ api: mocked, appWindow, isDesktop: true, onTransferProgress: mocked.onTransferProgress }));
 import App from '../src/App';
 
 const source = 'C:\\fixture\\source';
@@ -40,11 +44,13 @@ beforeEach(() => {
 describe('local SSH configuration', () => {
   it('automatically lists config aliases in both panes without contacting servers', async () => {
     mocked.getSshConfigHosts.mockResolvedValue(importedConfig);
-    await setup();
+    const user = await setup();
     for (const name of ['左侧设备', '右侧设备']) {
-      const selector = within(screen.getByRole('combobox', { name }));
-      expect(selector.getByRole('group', { name: 'SSH 配置' })).toBeTruthy();
-      expect(selector.getByRole('option', { name: 'quant-server' })).toBeTruthy();
+      await user.click(screen.getByRole('button', { name }));
+      const panel = within(screen.getByRole('dialog', { name: `选择${name}` }));
+      expect(within(panel.getByRole('group', { name: 'SSH 配置' })).getByRole('button', { name: /^quant-server/ })).toBeTruthy();
+      await user.keyboard('{Escape}');
+      expect(screen.queryByRole('dialog')).toBeNull();
     }
     expect(screen.getByText(importedConfig.path)).toBeTruthy();
     expect(screen.getByText('1 台设备')).toBeTruthy();
@@ -56,7 +62,7 @@ describe('local SSH configuration', () => {
     mocked.getSshConfigHosts.mockResolvedValue(importedConfig);
     mocked.probeSsh.mockResolvedValue({ fingerprint: 'SHA256:imported-key', keyType: 'ssh-ed25519' });
     const user = await setup();
-    await user.selectOptions(screen.getByLabelText('右侧设备'), 'ssh:quant-server');
+    await pickDevice(user, '右侧设备', 'SSH 配置', /^quant-server/);
     expect((screen.getByLabelText(/连接名称/) as HTMLInputElement).value).toBe('quant-server');
     expect((screen.getByLabelText('主机地址') as HTMLInputElement).value).toBe('10.20.30.40');
     expect((screen.getByLabelText('端口') as HTMLInputElement).value).toBe('2222');
@@ -93,7 +99,7 @@ describe('local SSH configuration', () => {
   it('blocks unsupported routing, including direct submit, but allows switching to manual entry', async () => {
     mocked.getSshConfigHosts.mockResolvedValue({ ...importedConfig, hosts: [{ ...importedConfig.hosts[0], warning: 'ProxyJump 暂不支持，请保留跳板机路由。' }], warnings: ['quant-server 使用 ProxyJump'] });
     const user = await setup();
-    await user.selectOptions(screen.getByLabelText('左侧设备'), 'ssh:quant-server');
+    await pickDevice(user, '左侧设备', 'SSH 配置', /^quant-server/);
     expect(screen.getByRole('alert').textContent).toContain('ProxyJump');
     expect((screen.getByRole('button', { name: '继续连接' }) as HTMLButtonElement).disabled).toBe(true);
     fireEvent.submit(screen.getByLabelText('主机地址').closest('form')!);
@@ -129,7 +135,7 @@ describe('local SSH configuration', () => {
     mocked.probeSsh.mockResolvedValue({ fingerprint: 'SHA256:imported-key', keyType: 'ssh-ed25519' });
     mocked.connectSsh.mockResolvedValue({ id: 'ssh-imported', name: 'quant-server', kind: 'ssh', host: '10.20.30.40', username: 'research', home: '/home/research' });
     const user = await setup();
-    await user.selectOptions(screen.getByLabelText('右侧设备'), 'ssh:quant-server');
+    await pickDevice(user, '右侧设备', 'SSH 配置', /^quant-server/);
     await user.type(screen.getByLabelText(/私钥口令/), 'session-only-passphrase');
     await user.click(screen.getByRole('button', { name: '继续连接' }));
     await screen.findByText('SHA256:imported-key');
@@ -137,8 +143,8 @@ describe('local SSH configuration', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(mocked.connectSsh.mock.calls[0][0]).toMatchObject({ name: 'quant-server', host: '10.20.30.40', port: 2222, username: 'research', privateKeyPath: importedConfig.hosts[0].privateKeyPath, passphrase: 'session-only-passphrase' });
     expect(localStorage.getItem('dropping.connections.v1')).toBe(originalProfiles);
-    await user.selectOptions(screen.getByLabelText('左侧设备'), 'ssh:quant-server');
-    await waitFor(() => expect((screen.getByLabelText('左侧设备') as HTMLSelectElement).value).toBe('ssh-imported'));
+    await pickDevice(user, '左侧设备', 'SSH 配置', /^quant-server/);
+    await waitFor(() => expect(screen.getByRole('button', { name: '左侧设备' }).textContent).toBe('quant-server'));
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(mocked.probeSsh).toHaveBeenCalledOnce();
     expect(mocked.connectSsh).toHaveBeenCalledOnce();
@@ -149,7 +155,7 @@ describe('local SSH configuration', () => {
     mocked.probeSsh.mockResolvedValue({ fingerprint: 'SHA256:imported-key', keyType: 'ssh-ed25519' });
     mocked.connectSsh.mockResolvedValue({ id: 'ssh-imported', name: 'quant-server', kind: 'ssh', host: '10.20.30.40', username: 'research', home: '/home/research' });
     const user = await setup();
-    await user.selectOptions(screen.getByLabelText('右侧设备'), 'ssh:quant-server');
+    await pickDevice(user, '右侧设备', 'SSH 配置', /^quant-server/);
     await user.click(screen.getByRole('button', { name: '继续连接' }));
     await screen.findByText('SHA256:imported-key');
     await user.click(screen.getByRole('button', { name: '信任并连接' }));
@@ -158,9 +164,9 @@ describe('local SSH configuration', () => {
     const callsBeforeReload = mocked.getSshConfigHosts.mock.calls.length;
     await user.click(screen.getByRole('button', { name: '重新读取 SSH 配置' }));
     await waitFor(() => expect(mocked.getSshConfigHosts).toHaveBeenCalledTimes(callsBeforeReload + 1));
-    expect((screen.getByLabelText('右侧设备') as HTMLSelectElement).value).toBe('ssh-imported');
+    expect(screen.getByRole('button', { name: '右侧设备' }).textContent).toBe('quant-server');
     expect(mocked.disconnect).not.toHaveBeenCalled();
-    await user.selectOptions(screen.getByLabelText('左侧设备'), 'ssh:quant-server');
+    await pickDevice(user, '左侧设备', 'SSH 配置', /^quant-server/);
     expect((screen.getByLabelText('主机地址') as HTMLInputElement).value).toBe('10.20.30.50');
     expect(mocked.connectSsh).toHaveBeenCalledOnce();
   });
@@ -173,11 +179,70 @@ async function setup() {
   await screen.findAllByText('report.txt');
   return user;
 }
+async function pickDevice(user: ReturnType<typeof userEvent.setup>, pane: string, group: string, name: RegExp) {
+  await user.click(screen.getByRole('button', { name: pane }));
+  const panel = within(screen.getByRole('dialog', { name: `选择${pane}` }));
+  await user.click(within(panel.getByRole('group', { name: group })).getByRole('button', { name }));
+}
 async function changeRightPath() {
   fireEvent.change(screen.getByLabelText('右侧目录路径'), { target: { value: destination } });
   fireEvent.submit(screen.getByLabelText('右侧目录路径').closest('form')!);
-  await waitFor(() => expect(screen.getByText('这个目录很干净')).toBeTruthy());
+  await waitFor(() => expect(screen.getByText('空目录')).toBeTruthy());
 }
+
+describe('device picker', () => {
+  it('opens a saved profile in the connect form and removes it from storage', async () => {
+    localStorage.setItem('dropping.connections.v1', JSON.stringify([{ name: 'manual-server', host: 'manual.example.com', port: 2200, username: 'operator', authMethod: 'password' }]));
+    const user = await setup();
+    await pickDevice(user, '左侧设备', '已保存的连接', /^manual-server/);
+    expect((screen.getByLabelText('主机地址') as HTMLInputElement).value).toBe('manual.example.com');
+    expect((screen.getByLabelText('端口') as HTMLInputElement).value).toBe('2200');
+    expect((screen.getByLabelText('连接来源') as HTMLSelectElement).value).toBe('saved:0');
+    await user.click(screen.getByRole('button', { name: '取消' }));
+    await user.click(screen.getByRole('button', { name: '左侧设备' }));
+    await user.click(screen.getByRole('button', { name: '删除 manual-server' }));
+    expect(screen.queryByRole('group', { name: '已保存的连接' })).toBeNull();
+    expect(JSON.parse(localStorage.getItem('dropping.connections.v1')!)).toEqual([]);
+  });
+
+  it('filters devices, opens the highlighted one with Enter and disconnects from the panel', async () => {
+    mocked.getSshConfigHosts.mockResolvedValue(importedConfig);
+    mocked.probeSsh.mockResolvedValue({ fingerprint: 'SHA256:imported-key', keyType: 'ssh-ed25519' });
+    mocked.connectSsh.mockResolvedValue({ id: 'ssh-imported', name: 'quant-server', kind: 'ssh', host: '10.20.30.40', username: 'research', home: '/home/research' });
+    mocked.disconnect.mockResolvedValue(undefined);
+    const user = await setup();
+    await user.click(screen.getByRole('button', { name: '右侧设备' }));
+    await user.keyboard('10.20');
+    await user.keyboard('{Enter}');
+    expect((screen.getByLabelText('主机地址') as HTMLInputElement).value).toBe('10.20.30.40');
+    await user.click(screen.getByRole('button', { name: '继续连接' }));
+    await user.click(await screen.findByRole('button', { name: '信任并连接' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: '右侧设备' }).textContent).toBe('quant-server'));
+    await user.click(screen.getByRole('button', { name: '右侧设备' }));
+    const live = within(screen.getByRole('group', { name: '已连接' }));
+    expect(live.getByRole('button', { name: /^quant-server/ }).getAttribute('aria-current')).toBe('true');
+    await user.click(live.getByRole('button', { name: '断开 quant-server' }));
+    await waitFor(() => expect(mocked.disconnect).toHaveBeenCalledWith('ssh-imported'));
+    await waitFor(() => expect(screen.getByRole('button', { name: '右侧设备' }).textContent).toBe('此电脑'));
+  });
+});
+
+describe('window chrome', () => {
+  it('drives the frameless window controls and closes the queue panel with Escape', async () => {
+    appWindow.isMaximized.mockResolvedValue(true);
+    const user = await setup();
+    await user.click(screen.getByRole('button', { name: '最小化' }));
+    expect(appWindow.minimize).toHaveBeenCalledOnce();
+    await user.click(await screen.findByRole('button', { name: '向下还原' }));
+    expect(appWindow.toggleMaximize).toHaveBeenCalledOnce();
+    await user.click(screen.getByRole('button', { name: /^传输队列/ }));
+    expect(screen.getByRole('dialog', { name: '传输队列' }).textContent).toContain('暂无任务');
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: '传输队列' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: '关闭' }));
+    expect(appWindow.close).toHaveBeenCalledOnce();
+  });
+});
 
 describe('workspace behavior', () => {
   it('previews the selected file with Space but does not hijack typing', async () => {
@@ -223,6 +288,9 @@ describe('workspace behavior', () => {
     await user.dblClick(left.getByText('report.txt'));
     await user.dblClick(left.getByText('model.bin'));
     expect(mocked.startTransfer).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog', { name: '传输队列' })).toBeNull();
+    expect(within(screen.getByRole('button', { name: /^传输队列/ })).getByText('2')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /^传输队列/ }));
     expect(screen.getByText('排队中')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: '取消 model.bin' }));
     expect(mocked.cancelTransfer).not.toHaveBeenCalled();
