@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Dropping",
+  "version": "0.1.1",
+  "identifier": "com.dropping.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [{
+      "title": "Dropping",
+      "width": 1360,
+      "height": 900,
+      "minWidth": 940,
+      "minHeight": 640,
+      "center": true,
+      "backgroundColor": "#f5f7f8"
+    }],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; object-src 'none'; frame-src 'none'; base-uri 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Utility",
+    "license": "MIT",
+    "homepage": "https://github.com/nnquant/dropping",
+    "resources": {
+      "../LICENSE": "LICENSE",
+      "../THIRD_PARTY_NOTICES.txt": "THIRD_PARTY_NOTICES.txt"
+    },
+    "shortDescription": "双栏 SFTP 文件互传",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico", "icons/icon.icns"],
+    "windows": { "nsis": { "displayLanguageSelector": false, "languages": ["SimpChinese", "English"] } }
+  }
+}
