@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import {
-  ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, CircleAlert, CodeXml, CornerLeftUp, Eye, EyeOff,
-  Laptop, LoaderCircle, Plus, RefreshCw, Search, Server, X,
+  ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, CircleAlert, ClipboardPaste, CodeXml, Copy, CornerLeftUp, Eye,
+  FolderOpen, FolderPlus, Info, Laptop, Link, List, LoaderCircle, Pencil, Plus, RefreshCw, Scissors, Search, Server, SquareArrowOutUpRight, Trash2, X,
 } from 'lucide-react';
 import { api, appWindow, isDesktop, onTransferProgress } from './bridge';
 import AddressBar from './AddressBar';
 import DevicePicker from './DevicePicker';
+import FileToolbar from './FileToolbar';
+import ContextMenu, { type ContextAction } from './ContextMenu';
 import { FileIcon, formatDate, formatSize } from './files';
 import PreviewContent, { DataTable, previewFormat } from './PreviewContent';
 import { parseDelimited, readParquetPreview, type TablePreview } from './tables';
@@ -19,7 +21,7 @@ type SortKey = 'name' | 'size' | 'modified';
 type PaneState = {
   connectionId: string; path: string; draftPath: string; listing: DirectoryListing | null;
   loading: boolean; error: string | null; selected: string | null; search: string;
-  sort: SortKey; ascending: boolean; history: string[]; showHidden: boolean;
+  sort: SortKey; ascending: boolean; history: string[]; showHidden: boolean; compact: boolean;
 };
 /** Each pane holds browser-style tabs; every tab keeps its own device, folder and view state. */
 type Tab = PaneState & { id: string };
@@ -30,7 +32,7 @@ type Profile = Pick<SshConfig, 'name' | 'host' | 'port' | 'username' | 'authMeth
 type ConnectForm = Profile & { password: string; passphrase: string };
 type PreviewState = { file: FileEntry; connectionName: string; loading: boolean; data: Preview | null; table: TablePreview | null; error: string | null };
 const isWindowChrome = (target: EventTarget) => !(target instanceof Element && target.closest('button, input, select, a, [role="dialog"]'));
-const emptyPane = (): PaneState => ({ connectionId: '', path: '', draftPath: '', listing: null, loading: true, error: null, selected: null, search: '', sort: 'name', ascending: true, history: [], showHidden: false });
+const emptyPane = (): PaneState => ({ connectionId: '', path: '', draftPath: '', listing: null, loading: true, error: null, selected: null, search: '', sort: 'name', ascending: true, history: [], showHidden: false, compact: false });
 const newTab = (): Tab => ({ ...emptyPane(), id: crypto.randomUUID() });
 const newSide = (): SideTabs => { const tab = newTab(); return { tabs: [tab], active: tab.id }; };
 const activeOf = (side: SideTabs) => side.tabs.find(tab => tab.id === side.active) ?? side.tabs[0];
@@ -41,6 +43,9 @@ const PROFILE_KEY = 'dropping.connections.v1';
 /** Host keys the user has explicitly trusted, keyed by `host:port` (fingerprints only, never secrets). */
 const KNOWN_HOSTS_KEY = 'dropping.known-hosts.v1';
 type KnownHost = { fingerprint: string; keyType: string };
+type FileClipboard = { mode: 'copy' | 'cut'; connectionId: string; directory: string; file: FileEntry };
+type FileDialog = { kind: 'new' | 'rename' | 'delete' | 'properties'; connectionId: string; directory: string; file?: FileEntry };
+type WorkspaceMenu = { id: string; side: Side; tabId: string; directory: string; selected: string | null; x: number; y: number };
 const hostId = (host: string, port: number) => `${host.trim().toLowerCase()}:${port}`;
 const isHandshakeFailure = (error: unknown) => messageOf(error).includes('SSH 握手失败');
 /** Errors from a remote operation that mean the session itself is gone, not just one path failing. */
@@ -114,6 +119,15 @@ export default function App() {
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [previewSource, setPreviewSource] = useState(false);
   const previewRequest = useRef(0);
+  const [fileClipboard, setFileClipboard] = useState<FileClipboard | null>(null);
+  const [fileDialog, setFileDialog] = useState<FileDialog | null>(null);
+  const [fileName, setFileName] = useState('');
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [fileBusy, setFileBusy] = useState(false);
+  const fileLock = useRef(false);
+  const fileDialogRef = useRef<HTMLElement>(null);
+  const fileLists = useRef<(HTMLDivElement | null)[]>([]);
+  const [contextMenu, setContextMenu] = useState<WorkspaceMenu | null>(null);
 
   const commitSides = useCallback((next: [SideTabs, SideTabs]) => { sidesRef.current = next; setSides(next); }, []);
   const paneAt = useCallback((side: Side) => activeOf(sidesRef.current[side]), []);
@@ -281,6 +295,145 @@ export default function App() {
     void runQueue();
   }, [notify, paneAt, runQueue]);
 
+  const refreshFolder = useCallback((connectionId: string, directory: string) => {
+    eachTab((side, tab) => {
+      if (tab.connectionId === connectionId && tab.path === directory) void loadDirectory(side, connectionId, directory, false, tab.id);
+    });
+  }, [eachTab, loadDirectory]);
+  const openFileDialog = useCallback((side: Side, kind: FileDialog['kind']) => {
+    const pane = paneAt(side);
+    if (!pane.listing || pane.loading || pane.error || fileLock.current) return;
+    const file = pane.listing.entries.find(entry => entry.path === pane.selected);
+    if (kind !== 'new' && !file) return;
+    if (file?.isSymlink && kind !== 'properties') { notify('暂不操作符号链接，请选择普通文件或文件夹。', true); return; }
+    setFileName(kind === 'new' ? '新建文件夹' : file?.name || '');
+    setFileError(null);
+    setFileDialog({ kind, connectionId: pane.connectionId, directory: pane.path, file });
+  }, [notify, paneAt]);
+  const closeFileDialog = useCallback(() => {
+    if (fileLock.current) return;
+    setFileDialog(null);
+    fileLists.current[activeSide]?.focus();
+  }, [activeSide]);
+  const submitFileDialog = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!fileDialog || fileLock.current || fileDialog.kind === 'properties') return;
+    const { kind, connectionId, directory, file } = fileDialog;
+    const name = fileName;
+    if (kind !== 'delete' && (!name.trim() || name === '.' || name === '..' || /[\\/\0]/.test(name))) {
+      setFileError('请输入有效的名称，不能包含路径分隔符。'); return;
+    }
+    if (kind === 'rename' && name === file?.name) { closeFileDialog(); return; }
+    fileLock.current = true;
+    setFileBusy(true);
+    setFileError(null);
+    try {
+      if (kind === 'new') await api.createFolder(connectionId, directory, name);
+      else if (kind === 'rename' && file) await api.renameEntry(connectionId, directory, file.name, name);
+      else if (kind === 'delete' && file) await api.deleteEntry(connectionId, directory, file.name);
+      setFileClipboard(current => current?.connectionId === connectionId && current.file.path === file?.path ? null : current);
+      setFileDialog(null);
+      notify(kind === 'new' ? `已新建 ${name}` : kind === 'rename' ? `已重命名为 ${name}` : `已删除 ${file?.name}`);
+      fileLists.current[activeSide]?.focus();
+    } catch (error) {
+      setFileError(messageOf(error));
+      reportRemoteFailure(connectionId, error);
+    } finally {
+      fileLock.current = false;
+      setFileBusy(false);
+      refreshFolder(connectionId, directory);
+    }
+  };
+  const copyFile = useCallback((side: Side, mode: FileClipboard['mode']) => {
+    const pane = paneAt(side);
+    const file = pane.listing?.entries.find(entry => entry.path === pane.selected);
+    if (!file || pane.loading || pane.error || fileLock.current) return;
+    if (file.isSymlink) { notify('暂不复制或剪切符号链接。', true); return; }
+    setFileClipboard({ mode, connectionId: pane.connectionId, directory: pane.path, file });
+    notify(mode === 'cut' ? `已剪切 ${file.name}，请在同一设备的目标目录粘贴。` : `已复制 ${file.name}，请在目标目录粘贴。`);
+  }, [notify, paneAt]);
+  const pasteFile = useCallback(async (side: Side, directory?: string) => {
+    const pane = paneAt(side);
+    const destinationDirectory = directory ?? pane.path;
+    const clipboard = fileClipboard;
+    if (!clipboard || !pane.listing || pane.loading || pane.error || fileLock.current) return;
+    const sourceConnection = connectionsRef.current.find(item => item.id === clipboard.connectionId);
+    const destinationConnection = connectionsRef.current.find(item => item.id === pane.connectionId);
+    if (!sourceConnection || !destinationConnection) { notify('源设备已断开，请重新复制。', true); return; }
+    if (clipboard.connectionId === pane.connectionId && clipboard.directory === destinationDirectory) { notify('源目录与目标目录相同，请选择另一个目录。', true); return; }
+    if (clipboard.mode === 'cut') {
+      if (clipboard.connectionId !== pane.connectionId) { notify('剪切只支持同一设备内移动；跨设备请使用复制粘贴。', true); return; }
+      fileLock.current = true;
+      setFileBusy(true);
+      try {
+        await api.moveEntry(clipboard.connectionId, clipboard.directory, clipboard.file.name, destinationDirectory);
+        setFileClipboard(null);
+        notify(`已移动 ${clipboard.file.name}`);
+      } catch (error) { notify(`移动失败：${messageOf(error)}`, true); reportRemoteFailure(pane.connectionId, error); }
+      finally {
+        fileLock.current = false;
+        setFileBusy(false);
+        refreshFolder(clipboard.connectionId, clipboard.directory);
+        refreshFolder(pane.connectionId, destinationDirectory);
+      }
+      return;
+    }
+    const item: QueueItem = {
+      id: crypto.randomUUID(), name: clipboard.file.name, isDir: clipboard.file.isDir, sourceName: sourceConnection.name,
+      destinationName: destinationConnection.name, sourceConnectionId: clipboard.connectionId,
+      destinationConnectionId: pane.connectionId, sourcePath: clipboard.file.path, destinationDirectory,
+      status: 'queued', bytesTransferred: 0, totalBytes: clipboard.file.isDir ? 0 : clipboard.file.size,
+      filesTransferred: 0, totalFiles: clipboard.file.isDir ? 0 : 1, currentFile: clipboard.file.name,
+    };
+    pending.current.push(item);
+    setQueue(current => [...current, item]);
+    void runQueue();
+  }, [fileClipboard, notify, paneAt, refreshFolder, reportRemoteFailure, runQueue]);
+  const copyPath = useCallback(async (side: Side) => {
+    const pane = paneAt(side);
+    if (!pane.listing || pane.loading || pane.error) return;
+    const path = pane.listing.entries.find(entry => entry.path === pane.selected)?.path || pane.path;
+    try { await navigator.clipboard.writeText(path); notify('路径已复制'); }
+    catch (error) { notify(`复制路径失败：${messageOf(error)}`, true); }
+  }, [notify, paneAt]);
+
+  const openContextMenu = (side: Side, selected: string | null, x: number, y: number) => {
+    if (connectOpen || fileDialog || preview) return;
+    const pane = paneAt(side);
+    updatePane(side, current => ({ ...current, selected }));
+    setActiveSide(side);
+    setContextMenu({ id: crypto.randomUUID(), side, tabId: pane.id, directory: pane.path, selected, x, y });
+  };
+  const closeContextMenu = (restoreFocus = false) => {
+    setContextMenu(null);
+    if (restoreFocus && contextMenu) fileLists.current[contextMenu.side]?.focus();
+  };
+  useEffect(() => {
+    if (!contextMenu) return;
+    const pane = activeOf(sides[contextMenu.side]);
+    if (pane.id !== contextMenu.tabId || pane.path !== contextMenu.directory || pane.selected !== contextMenu.selected || pane.loading || activeSide !== contextMenu.side || fileDialog || preview || connectOpen) setContextMenu(null);
+  }, [activeSide, connectOpen, contextMenu, fileDialog, preview, sides]);
+
+  useEffect(() => {
+    if (!fileDialog) return;
+    const dialog = fileDialogRef.current;
+    const input = dialog?.querySelector('input');
+    if (input) {
+      input.focus();
+      input.setSelectionRange(0, fileDialog.kind === 'rename' && !fileDialog.file?.isDir && fileName.lastIndexOf('.') > 0 ? fileName.lastIndexOf('.') : fileName.length);
+    } else dialog?.querySelector<HTMLButtonElement>('button')?.focus();
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)') || []);
+      const first = controls[0]; const last = controls[controls.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', trapFocus);
+    return () => document.removeEventListener('keydown', trapFocus);
+  }, [fileDialog]);
+
   const openPreview = useCallback(async (side: Side, file?: FileEntry) => {
     const pane = paneAt(side);
     const entry = file || pane.listing?.entries.find(item => item.path === pane.selected);
@@ -307,14 +460,25 @@ export default function App() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (preview) closePreview();
+        if (fileDialog) closeFileDialog();
+        else if (preview) closePreview();
         else if (connectOpen && !connectionBusy) setConnectOpen(false);
         return;
       }
       const typing = event.target instanceof HTMLElement && (event.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName));
       if (preview && event.code === 'Space' && !typing) { event.preventDefault(); closePreview(); return; }
-      if (connectOpen || preview || event.target instanceof HTMLElement && (event.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(event.target.tagName))) return;
+      if (connectOpen || preview || fileDialog || contextMenu || event.target instanceof HTMLElement && (event.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(event.target.tagName))) return;
       const pane = paneAt(activeSide);
+      const modifier = event.ctrlKey || event.metaKey;
+      const key = event.key.toLowerCase();
+      if (modifier && event.shiftKey && key === 'n') { event.preventDefault(); openFileDialog(activeSide, 'new'); return; }
+      if (modifier && event.shiftKey && key === 'c') { event.preventDefault(); void copyPath(activeSide); return; }
+      if (modifier && (key === 'c' || key === 'x')) { event.preventDefault(); copyFile(activeSide, key === 'x' ? 'cut' : 'copy'); return; }
+      if (modifier && key === 'v') { event.preventDefault(); void pasteFile(activeSide); return; }
+      if (event.key === 'F2') { event.preventDefault(); openFileDialog(activeSide, 'rename'); return; }
+      if (event.key === 'Delete') { event.preventDefault(); openFileDialog(activeSide, 'delete'); return; }
+      if (event.altKey && event.key === 'Enter') { event.preventDefault(); openFileDialog(activeSide, 'properties'); return; }
+      if (event.key === 'F5') { event.preventDefault(); if (pane.connectionId && !pane.loading) void loadDirectory(activeSide, pane.connectionId, pane.path, false); return; }
       if (event.code === 'Space') { event.preventDefault(); void openPreview(activeSide); }
       if (event.key === 'Enter') {
         if (pane.selected === PARENT_ROW && pane.listing?.parent && !pane.loading) {
@@ -342,7 +506,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [activeSide, closePreview, connectOpen, connectionBusy, enqueue, loadDirectory, openPreview, paneAt, preview, updatePane]);
+  }, [activeSide, closeFileDialog, closePreview, connectOpen, connectionBusy, contextMenu, copyFile, copyPath, enqueue, fileDialog, loadDirectory, openFileDialog, openPreview, paneAt, pasteFile, preview, updatePane]);
 
   const openIn = (target: Target, connection: Connection) => {
     setActiveSide(target.side);
@@ -551,6 +715,48 @@ export default function App() {
     onCreate: () => openConnect(target),
   });
 
+  const contextItems = (): (ContextAction | null)[] => {
+    if (!contextMenu) return [];
+    const { side } = contextMenu;
+    const pane = panes[side];
+    const other = panes[side === 0 ? 1 : 0];
+    const file = pane.listing?.entries.find(entry => entry.path === contextMenu.selected);
+    const ready = !!pane.listing && !pane.loading && !pane.error && !fileBusy;
+    const canPaste = ready && !!fileClipboard && connections.some(item => item.id === fileClipboard.connectionId) && (fileClipboard.mode === 'copy' || fileClipboard.connectionId === pane.connectionId);
+    if (!file) return [
+      { label: '新建文件夹', icon: <FolderPlus size={14} />, shortcut: 'Ctrl+Shift+N', disabled: !ready, onClick: () => openFileDialog(side, 'new') },
+      { label: '粘贴', icon: <ClipboardPaste size={14} />, shortcut: 'Ctrl+V', disabled: !canPaste, onClick: () => void pasteFile(side) },
+      null,
+      { label: '刷新', icon: <RefreshCw size={14} />, shortcut: 'F5', disabled: !pane.connectionId || pane.loading, onClick: () => void loadDirectory(side, pane.connectionId, pane.path, false) },
+      { label: '复制当前目录路径', icon: <Link size={14} />, disabled: !ready, onClick: () => void copyPath(side) },
+      null,
+      { label: '显示隐藏文件', icon: <Eye size={14} />, checked: pane.showHidden, onClick: () => updatePane(side, current => ({ ...current, showHidden: !current.showHidden, selected: null })) },
+      { label: '紧凑视图', icon: <List size={14} />, checked: pane.compact, onClick: () => updatePane(side, current => ({ ...current, compact: !current.compact })) },
+    ];
+    const mutable = ready && !file.isSymlink;
+    const connection = connections.find(item => item.id === pane.connectionId);
+    return [
+      ...(file.isDir ? [
+        { label: '打开文件夹', icon: <FolderOpen size={14} />, shortcut: 'Enter', disabled: !mutable, onClick: () => void loadDirectory(side, pane.connectionId, file.path) },
+        { label: '在新标签页中打开', icon: <SquareArrowOutUpRight size={14} />, disabled: !mutable || !connection, onClick: () => { if (connection) addTab(side, connection, file.path); } },
+      ] : [
+        { label: '预览', icon: <Eye size={14} />, shortcut: 'Space', disabled: !mutable, onClick: () => void openPreview(side, file) },
+      ]),
+      { label: side === 0 ? '传输到右侧' : '传输到左侧', icon: side === 0 ? <ArrowRight size={14} /> : <ArrowLeft size={14} />,
+        disabled: !mutable || other.loading || !other.listing || !!other.error || (pane.connectionId === other.connectionId && pane.path === other.path), onClick: () => enqueue(side, file) },
+      null,
+      { label: '剪切', icon: <Scissors size={14} />, shortcut: 'Ctrl+X', disabled: !mutable, onClick: () => copyFile(side, 'cut') },
+      { label: '复制', icon: <Copy size={14} />, shortcut: 'Ctrl+C', disabled: !mutable, onClick: () => copyFile(side, 'copy') },
+      ...(file.isDir ? [{ label: '粘贴到此文件夹', icon: <ClipboardPaste size={14} />, disabled: !canPaste || file.isSymlink, onClick: () => void pasteFile(side, file.path) }] : []),
+      { label: '复制路径', icon: <Link size={14} />, shortcut: 'Ctrl+Shift+C', disabled: !ready, onClick: () => void copyPath(side) },
+      null,
+      { label: '重命名', icon: <Pencil size={14} />, shortcut: 'F2', disabled: !mutable, onClick: () => openFileDialog(side, 'rename') },
+      { label: '删除', icon: <Trash2 size={14} />, shortcut: 'Delete', danger: true, disabled: !mutable, onClick: () => openFileDialog(side, 'delete') },
+      null,
+      { label: '属性', icon: <Info size={14} />, shortcut: 'Alt+Enter', disabled: !ready, onClick: () => openFileDialog(side, 'properties') },
+    ];
+  };
+
   return (
     <div className={`app ${isDesktop && !maximized ? 'is-framed' : ''}`}>
       <header className="titlebar" onMouseDown={titlebarMouseDown} onMouseMove={titlebarMouseMove} onMouseUp={() => { dragOrigin.current = null; }} onDoubleClick={titlebarDoubleClick}>
@@ -641,10 +847,17 @@ export default function App() {
                   onNavigate={path => { if (pane.connectionId) void loadDirectory(side, pane.connectionId, path); }}
                 />
                 <button className="icon-btn" title="刷新目录" aria-label="刷新目录" disabled={!pane.connectionId || pane.loading} onClick={() => void loadDirectory(side, pane.connectionId, pane.path, false)}><RefreshCw size={13} className={pane.loading ? 'spin' : ''} /></button>
-                <button className={`icon-btn toggle-icon ${pane.showHidden ? 'is-on' : ''}`} aria-label="显示隐藏文件" aria-pressed={pane.showHidden} title={pane.showHidden ? '隐藏点文件' : '显示隐藏文件'}
-                  onClick={() => updatePane(side, current => ({ ...current, showHidden: !current.showHidden, selected: null }))}>
-                  {pane.showHidden ? <Eye size={14} /> : <EyeOff size={14} />}
-                </button>
+                <FileToolbar ready={!!pane.listing && !pane.loading && !pane.error} selected={!!selected && !selected.isSymlink} busy={fileBusy}
+                  canPaste={!!fileClipboard && connections.some(item => item.id === fileClipboard.connectionId) && (fileClipboard.mode === 'copy' || fileClipboard.connectionId === pane.connectionId)}
+                  clipboardName={fileClipboard?.file.name} showHidden={pane.showHidden} compact={pane.compact} sort={pane.sort} ascending={pane.ascending}
+                  onNewFolder={() => openFileDialog(side, 'new')} onCut={() => copyFile(side, 'cut')} onCopy={() => copyFile(side, 'copy')}
+                  onPaste={() => void pasteFile(side)} onRename={() => openFileDialog(side, 'rename')} onDelete={() => openFileDialog(side, 'delete')}
+                  onCopyPath={() => void copyPath(side)} onProperties={() => openFileDialog(side, 'properties')}
+                  onHome={() => { if (connection) void loadDirectory(side, pane.connectionId, connection.home); }}
+                  onHidden={() => updatePane(side, current => ({ ...current, showHidden: !current.showHidden, selected: null }))}
+                  onCompact={() => updatePane(side, current => ({ ...current, compact: !current.compact }))}
+                  onSort={(sort, ascending) => updatePane(side, current => ({ ...current, sort, ascending }))}
+                />
                 <label className="filter-field">
                   <Search size={12} />
                   <input placeholder="筛选" aria-label={`筛选${sideName}文件`} value={pane.search} onChange={event => updatePane(side, current => ({ ...current, search: event.target.value, selected: null }))} />
@@ -652,7 +865,15 @@ export default function App() {
                 </label>
               </div>
 
-              <div className={`file-list ${pane.loading ? 'is-loading' : ''}`} tabIndex={0} aria-label={`${sideName}文件列表，空格预览，回车打开或传输`}>
+              <div ref={element => { fileLists.current[side] = element; }} className={`file-list ${pane.loading ? 'is-loading' : ''} ${pane.compact ? 'is-compact' : ''}`} tabIndex={0} aria-label={`${sideName}文件列表，空格预览，回车打开或传输`}
+                onContextMenu={event => { event.preventDefault(); openContextMenu(side, null, event.clientX, event.clientY); }}
+                onKeyDown={event => {
+                  if (event.key !== 'ContextMenu' && !(event.shiftKey && event.key === 'F10')) return;
+                  event.preventDefault(); event.stopPropagation();
+                  const row = event.currentTarget.querySelector('[aria-selected="true"]') || event.currentTarget;
+                  const rect = row.getBoundingClientRect();
+                  openContextMenu(side, pane.selected === PARENT_ROW ? null : pane.selected, rect.left + 24, rect.top + Math.min(rect.height, 28));
+                }}>
                 {pane.loading && <div className="load-bar" />}
                 <table className="file-table">
                   <thead>
@@ -677,8 +898,9 @@ export default function App() {
                       </tr>
                     )}
                     {!pane.error && entries.map(entry => (
-                      <tr key={entry.path} className={pane.selected === entry.path ? 'selected-row' : ''} aria-selected={pane.selected === entry.path}
+                      <tr key={entry.path} className={`${pane.selected === entry.path ? 'selected-row' : ''} ${fileClipboard?.mode === 'cut' && fileClipboard.connectionId === pane.connectionId && fileClipboard.file.path === entry.path ? 'cut-row' : ''}`} aria-selected={pane.selected === entry.path}
                         onClick={() => updatePane(side, current => ({ ...current, selected: entry.path }))}
+                        onContextMenu={event => { event.preventDefault(); event.stopPropagation(); openContextMenu(side, entry.path, event.clientX, event.clientY); }}
                         onDoubleClick={() => { if (pane.loading) return; if (entry.isDir) void loadDirectory(side, pane.connectionId, entry.path); else enqueue(side, entry); }}>
                         <td><span className="file-name" title={entry.name}><FileIcon entry={entry} /><span>{entry.name}</span>{entry.isSymlink && <span className="symlink" title="符号链接">↗</span>}</span></td>
                         <td className="col-size">{entry.isDir ? '' : formatSize(entry.size)}</td>
@@ -730,6 +952,44 @@ export default function App() {
           {notification.error ? <CircleAlert size={14} /> : <Check size={14} />}
           <span>{notification.text}</span>
           <button className="icon-btn" onClick={() => setNotification(null)} aria-label="关闭提示"><X size={13} /></button>
+        </div>
+      )}
+
+      {contextMenu && <ContextMenu key={contextMenu.id} x={contextMenu.x} y={contextMenu.y} label={contextMenu.selected ? '项目右键菜单' : '工作区右键菜单'} items={contextItems()} onClose={closeContextMenu} />}
+
+      {fileDialog && (
+        <div className="backdrop" onMouseDown={event => { if (event.target === event.currentTarget) closeFileDialog(); }}>
+          <section ref={fileDialogRef} className="dialog file-dialog" role="dialog" aria-modal="true" aria-labelledby="file-dialog-title">
+            <div className="dialog-head">
+              <div><h2 id="file-dialog-title">{fileDialog.kind === 'new' ? '新建文件夹' : fileDialog.kind === 'rename' ? '重命名' : fileDialog.kind === 'delete' ? '删除确认' : '属性'}</h2>
+                <p className="truncate" title={fileDialog.directory}>{connections.find(item => item.id === fileDialog.connectionId)?.name} · {fileDialog.directory}</p></div>
+              <button className="icon-btn" aria-label="关闭文件窗口" disabled={fileBusy} onClick={closeFileDialog}><X size={15} /></button>
+            </div>
+            {fileDialog.kind === 'properties' && fileDialog.file ? (
+              <div className="dialog-body">
+                <dl className="file-properties">
+                  <dt>名称</dt><dd>{fileDialog.file.name}</dd>
+                  <dt>类型</dt><dd>{fileDialog.file.isSymlink ? '符号链接' : fileDialog.file.isDir ? '文件夹' : '文件'}</dd>
+                  <dt>大小</dt><dd>{fileDialog.file.isDir ? '—' : `${formatSize(fileDialog.file.size)} (${fileDialog.file.size.toLocaleString()} 字节)`}</dd>
+                  <dt>修改时间</dt><dd>{formatDate(fileDialog.file.modified) || '—'}</dd>
+                  <dt>路径</dt><dd><code>{fileDialog.file.path}</code></dd>
+                </dl>
+                <div className="dialog-foot"><button className="btn" onClick={() => {
+                  void navigator.clipboard.writeText(fileDialog.file!.path).then(() => notify('路径已复制')).catch(error => notify(`复制路径失败：${messageOf(error)}`, true));
+                }}>复制路径</button><button className="btn btn-primary" onClick={closeFileDialog}>关闭</button></div>
+              </div>
+            ) : (
+              <form className="dialog-body" onSubmit={event => void submitFileDialog(event)}>
+                {fileDialog.kind === 'delete' ? <div className="delete-warning"><CircleAlert size={20} /><div><p>永久删除「{fileDialog.file?.name}」？</p><span className="hint">{fileDialog.file?.isDir ? '文件夹及其全部内容将被删除。' : ''}此操作不进入回收站，无法撤销。</span></div></div>
+                  : <label className="field"><span>{fileDialog.kind === 'new' ? '文件夹名称' : '新名称'}</span><input required disabled={fileBusy} value={fileName} onChange={event => setFileName(event.target.value)} spellCheck={false} /></label>}
+                {fileError && <div className="form-error" role="alert"><CircleAlert size={13} /><span>{fileError}</span></div>}
+                <div className="dialog-foot"><button type="button" className="btn" disabled={fileBusy} onClick={closeFileDialog}>取消</button>
+                  <button type="submit" className={`btn ${fileDialog.kind === 'delete' ? 'btn-danger' : 'btn-primary'}`} disabled={fileBusy}>
+                    {fileBusy && <LoaderCircle size={13} className="spin" />}{fileBusy ? '处理中…' : fileDialog.kind === 'delete' ? '永久删除' : fileDialog.kind === 'new' ? '创建' : '保存'}
+                  </button></div>
+              </form>
+            )}
+          </section>
         </div>
       )}
 

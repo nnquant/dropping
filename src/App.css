@@ -148,7 +148,7 @@ input:focus-visible, select:focus-visible { outline: none; }
 
 /* Workspace */
 .workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-.pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; container-type: inline-size; }
 .pane + .pane { border-left: 1px solid var(--line); }
 
 .pane-head {
@@ -320,6 +320,44 @@ input:focus-visible, select:focus-visible { outline: none; }
 .filter-field input { padding-right: 6px; font-size: 12px; color: var(--fg); }
 .filter-clear { width: 20px; height: 100%; display: grid; place-items: center; color: var(--fg-3); }
 .filter-clear:hover { color: var(--fg); }
+
+.file-toolbar { display: flex; align-items: center; gap: 1px; flex-shrink: 0; }
+.file-toolbar .icon-btn { width: 26px; height: 26px; }
+.tool-divider { height: 14px; width: 1px; margin: 0 4px; background: var(--line); }
+.delete-tool:not(:disabled):hover { color: var(--danger); background: #fff1ef; }
+.tool-popover { position: relative; }
+.file-tool-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; min-width: 208px; padding: 4px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); box-shadow: 0 12px 36px rgba(0, 0, 0, .12); animation: rise .12s ease-out; }
+.file-tool-menu button { width: 100%; min-height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius); font-size: 12px; text-align: left; color: var(--fg-2); }
+.file-tool-menu button:not(:disabled):hover { background: var(--bg-hover); color: var(--fg); }
+.file-tool-menu button span { flex: 1; }
+.file-tool-menu kbd { font-family: var(--sans); color: var(--fg-3); font-size: 10px; }
+.file-tool-menu hr { margin: 4px; border: 0; border-top: 1px solid var(--line); }
+.context-menu { position: fixed; z-index: 35; width: 248px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); overflow-y: auto; padding: 4px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); box-shadow: 0 8px 28px rgba(0, 0, 0, .14); }
+.context-menu button { width: 100%; height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius); font-size: 12px; text-align: left; color: var(--fg-2); }
+.context-menu button span { flex: 1; }
+.context-menu kbd { font-family: var(--sans); font-size: 10px; color: var(--fg-3); }
+.context-menu button:not(:disabled):hover, .context-menu button:focus { outline: none; background: var(--bg-hover); color: var(--fg); }
+.context-menu button.danger { color: var(--danger); }
+.context-menu button.danger:not(:disabled):hover, .context-menu button.danger:focus { background: #fff1ef; color: var(--danger); }
+.context-separator { height: 1px; margin: 4px; background: var(--line); }
+.file-list.is-compact .file-table td { height: 26px; padding-top: 2px; padding-bottom: 2px; }
+.file-table .cut-row .file-name { opacity: .45; }
+.file-dialog { max-width: 440px; }
+.file-properties { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; margin: 0 0 20px; font-size: 12px; }
+.file-properties dt { color: var(--fg-3); }
+.file-properties dd { margin: 0; overflow-wrap: anywhere; }
+.delete-warning { display: flex; gap: 12px; margin-bottom: 20px; }
+.delete-warning > svg { flex-shrink: 0; color: var(--danger); margin-top: 2px; }
+.delete-warning p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn-danger:not(:disabled):hover { background: #a82d24; border-color: #a82d24; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@container (max-width: 760px) {
+  .pane-nav { height: auto; min-height: 70px; flex-wrap: wrap; padding: 5px 8px; row-gap: 4px; }
+  .pane-nav > .address { flex-basis: calc(100% - 100px); }
+  .file-toolbar { order: 1; flex: 1; }
+  .filter-field { order: 2; width: 108px; }
+}
 
 /* File list */
 .file-list { position: relative; flex: 1; min-height: 0; overflow: auto; }

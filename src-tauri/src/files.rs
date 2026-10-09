@@ -65,6 +65,28 @@ fn path_text(path: &Path) -> Result<String> {
         .ok_or_else(|| anyhow!("路径包含无法显示的非 UTF-8 字符"))
 }
 
+#[cfg(windows)]
+pub(crate) fn rename_no_replace(source: &str, target: &str) -> std::io::Result<()> {
+    use std::os::windows::ffi::OsStrExt;
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn MoveFileExW(source: *const u16, target: *const u16, flags: u32) -> i32;
+    }
+    let source: Vec<u16> = std::ffi::OsStr::new(source)
+        .encode_wide()
+        .chain(Some(0))
+        .collect();
+    let target: Vec<u16> = std::ffi::OsStr::new(target)
+        .encode_wide()
+        .chain(Some(0))
+        .collect();
+    // Both paths are nul-terminated and live throughout the call; zero flags refuses replacement.
+    if unsafe { MoveFileExW(source.as_ptr(), target.as_ptr(), 0) } == 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    Ok(())
+}
+
 impl Endpoint {
     pub fn is_local(&self) -> bool {
         matches!(self, Self::Local)
@@ -311,6 +333,114 @@ impl Endpoint {
             Self::Local => fs::create_dir(path).await.map_err(Into::into),
             Self::Remote(remote) => remote.sftp.create_dir(path).await.map_err(Into::into),
         }
+    }
+
+    pub async fn create_folder(&self, directory: &str, name: &str) -> Result<String> {
+        let directory = self.canonicalize(directory).await?;
+        let target = self.join(&directory, name)?;
+        self.mkdir(&target)
+            .await
+            .context("新建文件夹失败，可能已有同名项目")?;
+        Ok(target)
+    }
+
+    pub async fn move_entry(
+        &self,
+        directory: &str,
+        name: &str,
+        destination: &str,
+        new_name: &str,
+    ) -> Result<String> {
+        let directory = self.canonicalize(directory).await?;
+        let destination = self.canonicalize(destination).await?;
+        let source = self.join(&directory, name)?;
+        let target = self.join(&destination, new_name)?;
+        let meta = self.metadata(&source).await?;
+        if meta.is_symlink || (!meta.is_dir && !meta.is_file) {
+            bail!("暂不移动符号链接或特殊文件");
+        }
+        if self.exists(&target).await? {
+            bail!("目标已存在，未覆盖：{target}");
+        }
+        if meta.is_dir {
+            let nested = if self.is_local() {
+                #[cfg(windows)]
+                let (source, destination) = (source.to_lowercase(), destination.to_lowercase());
+                Path::new(&destination).starts_with(Path::new(&source))
+            } else {
+                destination == source || destination.starts_with(&format!("{source}/"))
+            };
+            if nested {
+                bail!("不能将文件夹移动到自身或其子目录");
+            }
+        }
+        match self {
+            Self::Local => {
+                #[cfg(windows)]
+                {
+                    let source = source.clone();
+                    let target = target.clone();
+                    tokio::task::spawn_blocking(move || rename_no_replace(&source, &target))
+                        .await
+                        .context("移动任务失败")?
+                        .context("移动失败，未覆盖目标；跨磁盘请使用复制粘贴")?;
+                }
+                #[cfg(not(windows))]
+                {
+                    if meta.is_dir {
+                        bail!("此平台暂不支持安全移动文件夹，请使用复制粘贴");
+                    }
+                    fs::hard_link(&source, &target)
+                        .await
+                        .context("移动失败，未覆盖目标")?;
+                    fs::remove_file(&source)
+                        .await
+                        .context("目标已创建，但源文件未删除，请检查两处文件")?;
+                }
+            }
+            Self::Remote(remote) => {
+                remote
+                    .sftp
+                    .rename(&source, &target)
+                    .await
+                    .context("移动失败，未请求覆盖目标")?;
+            }
+        }
+        Ok(target)
+    }
+
+    pub async fn delete_entry(&self, directory: &str, name: &str) -> Result<()> {
+        let directory = self.canonicalize(directory).await?;
+        let source = self.join(&directory, name)?;
+        let mut pending = vec![source];
+        let mut entries = Vec::new();
+        while let Some(path) = pending.pop() {
+            let meta = self.metadata(&path).await?;
+            if meta.is_symlink || (!meta.is_dir && !meta.is_file) {
+                bail!("目录含有符号链接或特殊文件，未执行删除：{path}");
+            }
+            if meta.is_dir {
+                pending.extend(
+                    self.children(&path)
+                        .await?
+                        .into_iter()
+                        .map(|entry| entry.path),
+                );
+            }
+            entries.push((path, meta.is_dir));
+        }
+        for (path, is_dir) in entries.into_iter().rev() {
+            let meta = self.metadata(&path).await?;
+            if meta.is_symlink || meta.is_dir != is_dir {
+                bail!("文件类型已变化，已停止删除，请刷新目录：{path}");
+            }
+            if is_dir {
+                self.remove_dir(&path).await?;
+            } else {
+                self.remove_file(&path).await?;
+            }
+        }
+        Ok(())
     }
 
     pub async fn remove_file(&self, path: &str) -> Result<()> {

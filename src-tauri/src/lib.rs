@@ -95,6 +95,72 @@ async fn preview_file(
 }
 
 #[tauri::command]
+async fn create_folder(
+    state: State<'_, AppState>,
+    connection_id: String,
+    directory: String,
+    name: String,
+) -> Result<String, String> {
+    state
+        .endpoint(&connection_id)
+        .await
+        .map_err(display_error)?
+        .create_folder(&directory, &name)
+        .await
+        .map_err(display_error)
+}
+
+#[tauri::command]
+async fn rename_entry(
+    state: State<'_, AppState>,
+    connection_id: String,
+    directory: String,
+    name: String,
+    new_name: String,
+) -> Result<String, String> {
+    state
+        .endpoint(&connection_id)
+        .await
+        .map_err(display_error)?
+        .move_entry(&directory, &name, &directory, &new_name)
+        .await
+        .map_err(display_error)
+}
+
+#[tauri::command]
+async fn move_entry(
+    state: State<'_, AppState>,
+    connection_id: String,
+    directory: String,
+    name: String,
+    destination: String,
+) -> Result<String, String> {
+    state
+        .endpoint(&connection_id)
+        .await
+        .map_err(display_error)?
+        .move_entry(&directory, &name, &destination, &name)
+        .await
+        .map_err(display_error)
+}
+
+#[tauri::command]
+async fn delete_entry(
+    state: State<'_, AppState>,
+    connection_id: String,
+    directory: String,
+    name: String,
+) -> Result<(), String> {
+    state
+        .endpoint(&connection_id)
+        .await
+        .map_err(display_error)?
+        .delete_entry(&directory, &name)
+        .await
+        .map_err(display_error)
+}
+
+#[tauri::command]
 async fn read_file_range(
     state: State<'_, AppState>,
     connection_id: String,
@@ -187,6 +253,10 @@ pub fn run() {
             connect_ssh,
             disconnect,
             list_directory,
+            create_folder,
+            rename_entry,
+            move_entry,
+            delete_entry,
             preview_file,
             read_file_range,
             start_transfer,

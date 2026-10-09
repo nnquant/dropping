@@ -61,6 +61,105 @@ fn rejects_traversal_and_preserves_chinese_names() {
 }
 
 #[tokio::test]
+async fn file_tools_preserve_conflicts_and_move_nested_folders() {
+    let scratch = Scratch::new();
+    let root = scratch.path("");
+    let endpoint = Endpoint::Local;
+    let folder = endpoint.create_folder(&root, "研究产物").await.unwrap();
+    assert!(endpoint.create_folder(&root, "研究产物").await.is_err());
+    assert!(endpoint.create_folder(&root, "../escape").await.is_err());
+    fs::write(PathBuf::from(&folder).join("报告.txt"), "结果")
+        .await
+        .unwrap();
+    fs::create_dir(PathBuf::from(&folder).join("子目录"))
+        .await
+        .unwrap();
+    fs::write(PathBuf::from(&folder).join("子目录/result.csv"), "收益")
+        .await
+        .unwrap();
+    endpoint.create_folder(&root, "已有目录").await.unwrap();
+    assert!(endpoint
+        .move_entry(&root, "研究产物", &root, "已有目录")
+        .await
+        .is_err());
+    assert!(endpoint
+        .move_entry(&root, "研究产物", &folder, "研究产物")
+        .await
+        .is_err());
+    #[cfg(windows)]
+    {
+        let renamed = endpoint
+            .move_entry(&root, "研究产物", &root, "重命名产物")
+            .await
+            .unwrap();
+        assert!(!endpoint.exists(&folder).await.unwrap());
+        assert_eq!(
+            fs::read_to_string(PathBuf::from(&renamed).join("报告.txt"))
+                .await
+                .unwrap(),
+            "结果"
+        );
+        let target = endpoint
+            .move_entry(&root, "重命名产物", &scratch.path("已有目录"), "重命名产物")
+            .await
+            .unwrap();
+        assert!(endpoint.exists(&target).await.unwrap());
+        endpoint
+            .delete_entry(&scratch.path("已有目录"), "重命名产物")
+            .await
+            .unwrap();
+        assert!(!endpoint.exists(&target).await.unwrap());
+    }
+    #[cfg(not(windows))]
+    endpoint.delete_entry(&root, "研究产物").await.unwrap();
+    assert!(endpoint.delete_entry(&root, "..").await.is_err());
+    assert!(endpoint.exists(&root).await.unwrap());
+}
+
+#[tokio::test]
+async fn file_tools_rename_files_without_overwriting() {
+    let scratch = Scratch::new();
+    let root = scratch.path("");
+    fs::write(scratch.path("source.txt"), "源文件")
+        .await
+        .unwrap();
+    fs::write(scratch.path("existing.txt"), "原目标")
+        .await
+        .unwrap();
+    #[cfg(windows)]
+    assert!(
+        files::rename_no_replace(&scratch.path("source.txt"), &scratch.path("existing.txt"))
+            .is_err()
+    );
+    assert!(Endpoint::Local
+        .move_entry(&root, "source.txt", &root, "existing.txt")
+        .await
+        .is_err());
+    assert_eq!(
+        fs::read_to_string(scratch.path("existing.txt"))
+            .await
+            .unwrap(),
+        "原目标"
+    );
+    Endpoint::Local
+        .move_entry(&root, "source.txt", &root, "改名.txt")
+        .await
+        .unwrap();
+    assert!(!Endpoint::Local
+        .exists(&scratch.path("source.txt"))
+        .await
+        .unwrap());
+    Endpoint::Local
+        .delete_entry(&root, "改名.txt")
+        .await
+        .unwrap();
+    assert!(!Endpoint::Local
+        .exists(&scratch.path("改名.txt"))
+        .await
+        .unwrap());
+}
+
+#[tokio::test]
 async fn local_nested_copy_and_conflict_preserve_original() {
     let scratch = Scratch::new();
     fs::create_dir_all(scratch.path("source/产物/empty"))
@@ -357,6 +456,38 @@ async fn sftp_integration() {
     let remote_root = format!("/integration-{}", uuid::Uuid::new_v4());
     alpha.mkdir(&remote_root).await.unwrap();
     beta.mkdir(&remote_root).await.unwrap();
+    let folder = alpha.create_folder(&remote_root, "工具测试").await.unwrap();
+    assert!(alpha.create_folder(&remote_root, "工具测试").await.is_err());
+    alpha.create_folder(&folder, "子目录").await.unwrap();
+    alpha.create_folder(&remote_root, "已有目录").await.unwrap();
+    assert!(alpha
+        .move_entry(&remote_root, "工具测试", &remote_root, "已有目录")
+        .await
+        .is_err());
+    assert!(alpha
+        .move_entry(&remote_root, "工具测试", &folder, "工具测试")
+        .await
+        .is_err());
+    let renamed = alpha
+        .move_entry(&remote_root, "工具测试", &remote_root, "改名目录")
+        .await
+        .unwrap();
+    assert!(!alpha.exists(&folder).await.unwrap());
+    alpha
+        .move_entry(
+            &remote_root,
+            "改名目录",
+            &format!("{remote_root}/已有目录"),
+            "改名目录",
+        )
+        .await
+        .unwrap();
+    assert!(!alpha.exists(&renamed).await.unwrap());
+    alpha.delete_entry(&remote_root, "已有目录").await.unwrap();
+    assert!(!alpha
+        .exists(&format!("{remote_root}/已有目录"))
+        .await
+        .unwrap());
     let remote_file = format!("{remote_root}/artifact.bin");
     let no_cancel = CancellationToken::new();
     let upload = transfer::run(
@@ -476,10 +607,19 @@ async fn reads_bounded_byte_ranges_from_local_files() {
     let data: Vec<u8> = (0..=255u8).cycle().take(1000).collect();
     fs::write(&path, &data).await.unwrap();
     let endpoint = Endpoint::Local;
-    assert_eq!(endpoint.read_range(&path, 250, 10).await.unwrap(), data[250..260]);
-    assert_eq!(endpoint.read_range(&path, 996, 100).await.unwrap(), data[996..]);
+    assert_eq!(
+        endpoint.read_range(&path, 250, 10).await.unwrap(),
+        data[250..260]
+    );
+    assert_eq!(
+        endpoint.read_range(&path, 996, 100).await.unwrap(),
+        data[996..]
+    );
     assert!(endpoint.read_range(&path, 1001, 1).await.is_err());
-    assert!(endpoint.read_range(&path, 0, 64 * 1024 * 1024 + 1).await.is_err());
+    assert!(endpoint
+        .read_range(&path, 0, 64 * 1024 * 1024 + 1)
+        .await
+        .is_err());
     assert!(endpoint.read_range(&scratch.path(""), 0, 1).await.is_err());
 }
 
@@ -491,6 +631,8 @@ fn lists_existing_drive_roots() {
         assert!(std::path::Path::new(drive).is_dir(), "{drive}");
     }
     if cfg!(windows) {
-        assert!(drives.iter().all(|drive| drive.len() == 3 && drive.ends_with(":\\")));
+        assert!(drives
+            .iter()
+            .all(|drive| drive.len() == 3 && drive.ends_with(":\\")));
     }
 }

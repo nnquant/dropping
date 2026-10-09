@@ -8,6 +8,7 @@ const mocked = vi.hoisted(() => ({
   getLocalInfo: vi.fn(), listDirectory: vi.fn(), previewFile: vi.fn(), startTransfer: vi.fn(),
   cancelTransfer: vi.fn(), disconnect: vi.fn(), probeSsh: vi.fn(), connectSsh: vi.fn(),
   onTransferProgress: vi.fn(), getSshConfigHosts: vi.fn(), readFileRange: vi.fn(), listDrives: vi.fn(),
+  createFolder: vi.fn(), renameEntry: vi.fn(), moveEntry: vi.fn(), deleteEntry: vi.fn(),
 }));
 const appWindow = vi.hoisted(() => ({
   minimize: vi.fn(async () => {}), toggleMaximize: vi.fn(async () => {}), close: vi.fn(async () => {}), startDragging: vi.fn(async () => {}),
@@ -40,6 +41,240 @@ beforeEach(() => {
   mocked.previewFile.mockResolvedValue({ kind: 'text', content: '研究产物预览', mime: 'text/plain', size: 12, truncated: false });
   mocked.cancelTransfer.mockResolvedValue(undefined);
   mocked.listDrives.mockResolvedValue(['C:\\', 'D:\\']);
+  mocked.createFolder.mockResolvedValue(`${source}\\新建文件夹`);
+  mocked.renameEntry.mockResolvedValue(`${source}\\renamed.txt`);
+  mocked.moveEntry.mockResolvedValue(`${destination}\\report.txt`);
+  mocked.deleteEntry.mockResolvedValue(undefined);
+});
+
+describe('file toolbar', () => {
+  it('disables selection actions and never acts on the parent row', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    for (const name of ['剪切', '复制', '粘贴', '重命名', '删除']) expect((left.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(true);
+    await user.click(left.getByText('..'));
+    await user.keyboard('{F2}{Delete}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(mocked.deleteEntry).not.toHaveBeenCalled();
+  });
+
+  it('creates a folder in the captured directory and refreshes both matching panes', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    await user.click(left.getByRole('button', { name: '新建文件夹' }));
+    const dialog = within(screen.getByRole('dialog', { name: '新建文件夹' }));
+    await user.clear(dialog.getByLabelText('文件夹名称'));
+    await user.type(dialog.getByLabelText('文件夹名称'), '研究产物');
+    mocked.listDirectory.mockClear();
+    await user.click(dialog.getByRole('button', { name: '创建' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(mocked.createFolder).toHaveBeenCalledWith('local', source, '研究产物');
+    expect(mocked.listDirectory).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows rename conflicts without closing the dialog or losing the name', async () => {
+    mocked.renameEntry.mockRejectedValueOnce(new Error('目标已存在，未覆盖'));
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    await user.click(left.getByText('report.txt'));
+    await user.keyboard('{F2}');
+    const dialog = within(screen.getByRole('dialog', { name: '重命名' }));
+    const input = dialog.getByLabelText('新名称') as HTMLInputElement;
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe(6);
+    await user.clear(input);
+    await user.type(input, 'renamed.txt');
+    await user.click(dialog.getByRole('button', { name: '保存' }));
+    expect(await dialog.findByRole('alert')).toBeTruthy();
+    expect(input.value).toBe('renamed.txt');
+    expect(mocked.renameEntry).toHaveBeenCalledWith('local', source, 'report.txt', 'renamed.txt');
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('copies through the transfer queue and retains clipboard for another paste', async () => {
+    mocked.startTransfer.mockResolvedValue({ targetPath: `${destination}\\report.txt`, bytes: 12, files: 1 });
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    const right = within(screen.getByRole('region', { name: '右侧工作区' }));
+    await user.click(left.getByText('report.txt'));
+    await user.keyboard('{Control>}c{/Control}');
+    await changeRightPath();
+    await user.click(right.getByRole('button', { name: '粘贴' }));
+    await waitFor(() => expect(mocked.startTransfer).toHaveBeenCalledOnce());
+    expect(mocked.startTransfer.mock.calls[0][0]).toMatchObject({ sourceConnectionId: 'local', sourcePath: `${source}\\report.txt`, destinationDirectory: destination });
+    await waitFor(() => expect((right.getByRole('button', { name: '粘贴' }) as HTMLButtonElement).disabled).toBe(false));
+  });
+
+  it('moves a cut file only when pasted and clears clipboard on success', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    const right = within(screen.getByRole('region', { name: '右侧工作区' }));
+    await user.click(left.getByText('report.txt'));
+    await user.click(left.getByRole('button', { name: '剪切' }));
+    expect(left.getAllByText('report.txt').some(item => item.closest('tr')?.classList.contains('cut-row'))).toBe(true);
+    expect(mocked.moveEntry).not.toHaveBeenCalled();
+    await changeRightPath();
+    await user.click(right.getByRole('button', { name: '粘贴' }));
+    await waitFor(() => expect(mocked.moveEntry).toHaveBeenCalledWith('local', source, 'report.txt', destination));
+    await waitFor(() => expect((right.getByRole('button', { name: '粘贴' }) as HTMLButtonElement).disabled).toBe(true));
+    expect(mocked.startTransfer).not.toHaveBeenCalled();
+  });
+
+  it('requires a separate permanent-delete confirmation and cancel performs no write', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    await user.click(left.getByText('outputs'));
+    await user.keyboard('{Delete}');
+    expect(screen.getByText(/此操作不进入回收站/)).toBeTruthy();
+    expect(mocked.deleteEntry).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: '取消' }));
+    expect(mocked.deleteEntry).not.toHaveBeenCalled();
+    await user.click(left.getByRole('button', { name: '删除' }));
+    await user.click(screen.getByRole('button', { name: '永久删除' }));
+    await waitFor(() => expect(mocked.deleteEntry).toHaveBeenCalledWith('local', source, 'outputs'));
+  });
+
+  it('changes sorting, toggles compact rows, and displays properties', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    await user.click(left.getByRole('button', { name: '排序方式' }));
+    await user.click(left.getByRole('group', { name: '排序选项' }).querySelector('button')!);
+    await user.click(left.getByRole('button', { name: '排序方式' }));
+    await user.click(within(left.getByRole('group', { name: '排序选项' })).getByRole('button', { name: '降序' }));
+    expect(left.getByRole('columnheader', { name: '名称' }).getAttribute('aria-sort')).toBe('descending');
+    await user.click(left.getByRole('button', { name: '更多文件操作' }));
+    await user.click(left.getByRole('button', { name: '紧凑视图' }));
+    expect(left.getByLabelText(/左侧文件列表/).classList.contains('is-compact')).toBe(true);
+    await user.click(left.getByText('report.txt'));
+    await user.keyboard('{Alt>}{Enter}{/Alt}');
+    const dialog = within(screen.getByRole('dialog', { name: '属性' }));
+    expect(dialog.getByText(`${source}\\report.txt`)).toBeTruthy();
+    expect(dialog.getByText(/12 字节/)).toBeTruthy();
+  });
+});
+
+describe('workspace context menus', () => {
+  it('selects the right-clicked file and renames that file instead of the old selection', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    const report = left.getByRole('row', { name: /report.txt/ });
+    await user.click(left.getByRole('row', { name: /model.bin/ }));
+    fireEvent.contextMenu(report, { clientX: 120, clientY: 200 });
+    expect(report.getAttribute('aria-selected')).toBe('true');
+    const menu = within(screen.getByRole('menu', { name: '项目右键菜单' }));
+    expect(menu.getByRole('menuitem', { name: /预览/ })).toBeTruthy();
+    expect(menu.queryByRole('menuitem', { name: '打开文件夹' })).toBeNull();
+    await user.click(menu.getByRole('menuitem', { name: /重命名/ }));
+    const input = screen.getByLabelText('新名称') as HTMLInputElement;
+    expect(input.value).toBe('report.txt');
+    await user.clear(input);
+    await user.type(input, '新的报告.txt');
+    await user.click(screen.getByRole('button', { name: '保存' }));
+    await waitFor(() => expect(mocked.renameEntry).toHaveBeenCalledWith('local', source, 'report.txt', '新的报告.txt'));
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('previews files and opens folders in new tabs using different menus', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    fireEvent.contextMenu(left.getByRole('row', { name: /report.txt/ }));
+    await user.click(screen.getByRole('menuitem', { name: /预览/ }));
+    expect(await screen.findByText('研究产物预览')).toBeTruthy();
+    expect(mocked.previewFile).toHaveBeenCalledWith('local', `${source}\\report.txt`);
+    await user.keyboard('{Escape}');
+    fireEvent.contextMenu(left.getByRole('row', { name: /outputs/ }));
+    expect(screen.queryByRole('menuitem', { name: /预览/ })).toBeNull();
+    expect(screen.getByRole('menuitem', { name: /打开文件夹/ })).toBeTruthy();
+    await user.click(screen.getByRole('menuitem', { name: '在新标签页中打开' }));
+    await waitFor(() => expect(mocked.listDirectory).toHaveBeenCalledWith('local', `${source}\\outputs`));
+    expect(left.getAllByRole('button', { name: /^关闭标签页/ })).toHaveLength(2);
+    expect(mocked.startTransfer).not.toHaveBeenCalled();
+  });
+
+  it('pastes into the right-clicked folder without navigating the pane', async () => {
+    mocked.startTransfer.mockResolvedValue({ targetPath: `${source}\\outputs\\report.txt`, bytes: 12, files: 1 });
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    const right = within(screen.getByRole('region', { name: '右侧工作区' }));
+    fireEvent.contextMenu(left.getByRole('row', { name: /report.txt/ }));
+    await user.click(screen.getByRole('menuitem', { name: /^复制 Ctrl/ }));
+    fireEvent.contextMenu(right.getByRole('row', { name: /outputs/ }));
+    await user.click(screen.getByRole('menuitem', { name: '粘贴到此文件夹' }));
+    await waitFor(() => expect(mocked.startTransfer).toHaveBeenCalledOnce());
+    expect(mocked.startTransfer.mock.calls[0][0]).toMatchObject({ sourcePath: `${source}\\report.txt`, destinationDirectory: `${source}\\outputs` });
+    expect(right.getByLabelText('右侧目录路径').getAttribute('title')).toBe(source);
+  });
+
+  it('shows a background menu, clears selection, and never deletes the parent row', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    await user.click(left.getByRole('row', { name: /report.txt/ }));
+    fireEvent.contextMenu(left.getByLabelText(/左侧文件列表/));
+    const menu = within(screen.getByRole('menu', { name: '工作区右键菜单' }));
+    expect(menu.queryByRole('menuitem', { name: /删除/ })).toBeNull();
+    expect((menu.getByRole('menuitem', { name: /^粘贴/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect(left.getByRole('row', { name: /report.txt/ }).getAttribute('aria-selected')).toBe('false');
+    await user.click(menu.getByRole('menuitem', { name: /新建文件夹/ }));
+    expect(screen.getByRole('dialog', { name: '新建文件夹' })).toBeTruthy();
+    await user.keyboard('{Escape}');
+    fireEvent.contextMenu(left.getByText('..'));
+    expect(screen.getByRole('menu', { name: '工作区右键菜单' })).toBeTruthy();
+    expect(screen.queryByRole('menuitem', { name: /删除/ })).toBeNull();
+    expect(mocked.deleteEntry).not.toHaveBeenCalled();
+  });
+
+  it('transfers right-clicked folders to the opposite pane and keeps delete confirmation', async () => {
+    mocked.startTransfer.mockResolvedValue({ targetPath: `${destination}\\outputs`, bytes: 0, files: 0 });
+    const user = await setup();
+    await changeRightPath();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    fireEvent.contextMenu(left.getByRole('row', { name: /outputs/ }));
+    await user.click(screen.getByRole('menuitem', { name: '传输到右侧' }));
+    await waitFor(() => expect(mocked.startTransfer).toHaveBeenCalledOnce());
+    expect(mocked.startTransfer.mock.calls[0][0]).toMatchObject({ sourcePath: `${source}\\outputs`, destinationDirectory: destination });
+    fireEvent.contextMenu(left.getByRole('row', { name: /outputs/ }));
+    await user.click(screen.getByRole('menuitem', { name: /^删除/ }));
+    expect(screen.getByRole('dialog', { name: '删除确认' })).toBeTruthy();
+    expect(mocked.deleteEntry).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: '取消' }));
+    expect(mocked.deleteEntry).not.toHaveBeenCalled();
+  });
+
+  it('supports keyboard invocation and navigation, Escape, outside click and scroll dismissal', async () => {
+    const user = await setup();
+    const left = within(screen.getByRole('region', { name: '左侧工作区' }));
+    const list = left.getByLabelText(/左侧文件列表/);
+    await user.click(left.getByRole('row', { name: /report.txt/ }));
+    list.focus();
+    await user.keyboard('{Shift>}{F10}{/Shift}');
+    const menu = within(screen.getByRole('menu'));
+    expect(document.activeElement).toBe(menu.getByRole('menuitem', { name: /预览/ }));
+    await user.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(menu.getByRole('menuitem', { name: /^剪切/ }));
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(document.activeElement).toBe(list);
+    fireEvent.contextMenu(list);
+    await user.click(screen.getByRole('button', { name: '右侧设备' }));
+    expect(screen.queryByRole('menu')).toBeNull();
+    await user.keyboard('{Escape}');
+    fireEvent.contextMenu(list);
+    fireEvent.scroll(list);
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('shows symlink properties while disabling file mutations', async () => {
+    mocked.listDirectory.mockImplementation(async (_id: string, path: string) => ({ ...listing(path), entries: [{ name: 'link', path: `${path}\\link`, isDir: false, isSymlink: true, size: 0, modified: null }] }));
+    const user = userEvent.setup();
+    render(<App />);
+    const links = await screen.findAllByText('link');
+    fireEvent.contextMenu(links[0]);
+    for (const name of [/预览/, /^剪切/, /^复制 Ctrl/, /重命名/, /^删除/]) expect((screen.getByRole('menuitem', { name }) as HTMLButtonElement).disabled).toBe(true);
+    await user.click(screen.getByRole('menuitem', { name: /属性/ }));
+    expect(screen.getByRole('dialog', { name: '属性' })).toBeTruthy();
+    expect(screen.getByText('符号链接')).toBeTruthy();
+  });
 });
 
 describe('local SSH configuration', () => {
